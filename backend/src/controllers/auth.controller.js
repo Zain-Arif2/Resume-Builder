@@ -1,4 +1,4 @@
-import { authService } from '../services/auth.service.js';
+﻿import { authService } from '../services/auth.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { setAuthCookies, clearAuthCookies } from '../utils/cookieUtils.js';
@@ -32,5 +32,20 @@ export const authController = {
 
   getMe: asyncHandler(async (req, res) => {
     return new ApiResponse(200, { user: req.user }, 'Current user fetched').send(res);
+  }),
+
+  forgotPassword: asyncHandler(async (req, res) => {
+    await authService.forgotPassword(req.body.email);
+    return new ApiResponse(200, null, 'If an account exists, a reset link has been sent').send(res);
+  }),
+
+  resetPassword: asyncHandler(async (req, res) => {
+    await authService.resetPassword(req.params.token, req.body.password);
+    return new ApiResponse(200, null, 'Password reset successful').send(res);
+  }),
+
+  updateProfile: asyncHandler(async (req, res) => {
+    const user = await authService.updateProfile(req.user.sub, req.body);
+    return new ApiResponse(200, { user: user.toSafeObject() }, 'Profile updated').send(res);
   }),
 };

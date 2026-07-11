@@ -7,7 +7,7 @@ export default function Footer() {
         <Link to="/" className="font-display font-semibold text-ink">
           Resume<span className="text-amber">AI</span>
         </Link>
-        <p className="text-slate text-sm font-mono">© 2026 ResumeAI. All rights reserved.</p>
+        <p className="text-slate text-sm font-mono">(c) 2026 ResumeAI. All rights reserved.</p>
       </div>
     </footer>
   );

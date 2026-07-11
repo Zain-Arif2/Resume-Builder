@@ -16,11 +16,7 @@ export default function Hero() {
       <div className="absolute top-40 -left-24 w-72 h-72 bg-emerald/10 rounded-full blur-3xl" />
 
       <div className="relative max-w-6xl mx-auto px-6 py-20 lg:py-28 grid lg:grid-cols-2 gap-16 items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <span className="inline-block font-mono text-xs tracking-wide text-emerald bg-emerald-dim px-3 py-1 rounded-full mb-6">
             AI RESUME BUILDER
           </span>
@@ -41,6 +37,8 @@ export default function Hero() {
               Build my resume <ArrowRight size={16} />
             </Link>
             
+            {/* FIX: Yahan 'a' tag ki opening statement missing thi jo ab add kar di hai */}
+            <a
               href="#how-it-works"
               className="text-ink font-medium px-6 py-3 rounded-xl border border-slate/20 hover:border-slate/40 transition"
             >
@@ -69,11 +67,7 @@ export default function Hero() {
 
             <div className="space-y-3 mb-6">
               {lines.map((line, i) => (
-                <div
-                  key={i}
-                  className="relative h-3 rounded-full bg-paper/10 overflow-hidden"
-                  style={{ width: line.width }}
-                >
+                <div key={i} className="relative h-3 rounded-full bg-paper/10 overflow-hidden" style={{ width: line.width }}>
                   {line.highlight && (
                     <motion.div
                       className="absolute inset-y-0 left-0 bg-amber/70 rounded-full"
