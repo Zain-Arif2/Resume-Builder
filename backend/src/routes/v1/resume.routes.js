@@ -14,5 +14,7 @@ router.get('/:id', validate(resumeIdParamSchema), resumeController.getById);
 router.patch('/:id', validate(updateResumeSchema), resumeController.update);
 router.delete('/:id', validate(resumeIdParamSchema), resumeController.remove);
 router.post('/:id/duplicate', validate(resumeIdParamSchema), resumeController.duplicate);
+router.get('/:id/versions', validate(resumeIdParamSchema), resumeController.listVersions);
+router.post('/:id/versions/:versionNumber/restore', resumeController.restoreVersion);
 
 export default router;

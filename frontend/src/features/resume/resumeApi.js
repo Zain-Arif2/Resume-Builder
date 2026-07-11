@@ -12,7 +12,24 @@ export const resumeApi = baseApi.injectEndpoints({
             ]
           : [{ type: 'Resume', id: 'LIST' }],
     }),
+listVersions: builder.query({
+  query: (id) => `/resumes/${id}/versions`,
+  providesTags: (result, error, id) => [
+    { type: "Resume", id },
+    { type: "ResumeVersions", id },
+  ],
+}),
 
+restoreVersion: builder.mutation({
+  query: ({ id, versionNumber }) => ({
+    url: `/resumes/${id}/versions/${versionNumber}/restore`,
+    method: "POST",
+  }),
+  invalidatesTags: (result, error, { id }) => [
+    { type: "Resume", id },
+    { type: "ResumeVersions", id },
+  ],
+}),
     getResume: builder.query({
       query: (id) => `/resumes/${id}`,
       providesTags: (result, error, id) => [{ type: 'Resume', id }],
@@ -50,4 +67,6 @@ export const {
   useUpdateResumeMutation,
   useDeleteResumeMutation,
   useDuplicateResumeMutation,
+  useListVersionsQuery,
+  useRestoreVersionMutation,
 } = resumeApi;

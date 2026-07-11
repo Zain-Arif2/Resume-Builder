@@ -21,7 +21,8 @@ export const resumeController = {
   }),
 
   update: asyncHandler(async (req, res) => {
-    const resume = await resumeService.updateResume(req.user.sub, req.params.id, req.body);
+    const saveVersion = req.query.saveVersion === 'true';
+    const resume = await resumeService.updateResume(req.user.sub, req.params.id, req.body, { saveVersion });
     return new ApiResponse(200, { resume }, 'Resume updated').send(res);
   }),
 
@@ -33,5 +34,20 @@ export const resumeController = {
   duplicate: asyncHandler(async (req, res) => {
     const resume = await resumeService.duplicateResume(req.user.sub, req.params.id);
     return new ApiResponse(201, { resume }, 'Resume duplicated').send(res);
+  }),
+
+  getPublicBySlug: asyncHandler(async (req, res) => {
+    const resume = await resumeService.getPublicResumeBySlug(req.params.slug);
+    return new ApiResponse(200, { resume }, 'Public resume fetched').send(res);
+  }),
+
+  listVersions: asyncHandler(async (req, res) => {
+    const versions = await resumeService.listVersions(req.user.sub, req.params.id);
+    return new ApiResponse(200, { versions }, 'Versions fetched').send(res);
+  }),
+
+  restoreVersion: asyncHandler(async (req, res) => {
+    const resume = await resumeService.restoreVersion(req.user.sub, req.params.id, parseInt(req.params.versionNumber, 10));
+    return new ApiResponse(200, { resume }, 'Version restored').send(res);
   }),
 };

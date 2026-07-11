@@ -14,6 +14,18 @@ export const aiApi = baseApi.injectEndpoints({
     improveGrammar: builder.mutation({
       query: (data) => ({ url: '/ai/grammar', method: 'POST', body: data }),
     }),
+    generateCoverLetter: builder.mutation({
+      query: (data) => ({ url: '/ai/cover-letter', method: 'POST', body: data }),
+    }),
+    analyzeATS: builder.mutation({
+      query: (data) => ({ url: '/ai/ats-analysis', method: 'POST', body: data }),
+    }),
+    generateInterviewQuestions: builder.mutation({
+      query: (data) => ({ url: '/ai/interview-questions', method: 'POST', body: data }),
+    }),
+    suggestCareers: builder.mutation({
+      query: (data) => ({ url: '/ai/career-suggestions', method: 'POST', body: data }),
+    }),
   }),
 });
 
@@ -22,4 +34,8 @@ export const {
   useImproveExperienceMutation,
   useImproveSkillsMutation,
   useImproveGrammarMutation,
+  useGenerateCoverLetterMutation,
+  useAnalyzeATSMutation,
+  useGenerateInterviewQuestionsMutation,
+  useSuggestCareersMutation,
 } = aiApi;
