@@ -1,8 +1,9 @@
-﻿import { useState } from "react";
-import ModernATS from "./templates/ModernATS";
+import { useState } from "react";
+import { getTemplateById } from "./templates";
 
-export default function ResumePreview({ data }) {
+export default function ResumePreview({ data, template = "classic" }) {
   const [zoom, setZoom] = useState(85); // Default visual zoom level
+  const TemplateComponent = getTemplateById(template).component;
 
   return (
     <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 h-[calc(100vh-180px)] flex flex-col overflow-hidden font-sans">
@@ -60,7 +61,7 @@ export default function ResumePreview({ data }) {
             border-zinc-200/50
           "
         >
-          <ModernATS data={data} />
+          <TemplateComponent data={data} />
         </div>
       </div>
     </div>

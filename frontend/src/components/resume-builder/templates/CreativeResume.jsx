@@ -81,21 +81,21 @@ export default function CreativeResume({ data }) {
 
         {/* Summary */}
         {data?.professionalSummary && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>About Me</SectionTitle>
             <p className="text-[14px] leading-7 text-slate-600 text-justify">
               {data.professionalSummary}
             </p>
-          </>
+          </div>
         )}
 
         {/* Experience */}
         {data?.experience?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Experience</SectionTitle>
             <div className="space-y-6">
               {data.experience.map((exp, index) => (
-                <div key={index} className="relative pl-4 border-l-2 border-indigo-100">
+                <div key={index} className="relative pl-4 border-l-2 border-indigo-100 avoid-break">
                   <div className="absolute w-2.5 h-2.5 bg-indigo-500 rounded-full -left-[6px] top-1.5" />
                   <div className="flex justify-between items-start">
                     <div>
@@ -103,32 +103,32 @@ export default function CreativeResume({ data }) {
                       <p className="text-xs font-semibold text-slate-500">{exp.company}</p>
                     </div>
                     <span className="text-xs font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded">
-                      {exp.startDate} - {exp.endDate || "Present"}
+                      {exp.startDate} — {exp.endDate || "Present"}
                     </span>
                   </div>
                   <p className="mt-2 text-xs text-slate-600 leading-5 whitespace-pre-line">{exp.description}</p>
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* Education */}
         {data?.education?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Education</SectionTitle>
             <div className="space-y-4">
               {data.education.map((edu, index) => (
-                <div key={index} className="flex justify-between items-start">
+                <div key={index} className="flex justify-between items-start avoid-break">
                   <div>
                     <h3 className="font-bold text-sm text-slate-800">{edu.degree}</h3>
                     <p className="text-xs text-slate-500">{edu.school || edu.institution}</p>
                   </div>
-                  <span className="text-xs text-slate-400">{edu.startDate} - {edu.endDate}</span>
+                  <span className="text-xs text-slate-400">{edu.startDate} — {edu.endDate}</span>
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
       </div>
 

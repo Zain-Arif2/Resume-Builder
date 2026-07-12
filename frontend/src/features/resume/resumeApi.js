@@ -1,4 +1,4 @@
-﻿import { baseApi } from '@/services/baseApi';
+import { baseApi } from '@/services/baseApi';
 
 export const resumeApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,29 +7,29 @@ export const resumeApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result?.data?.resumes
           ? [
-              ...result.data.resumes.map(({ _id }) => ({ type: 'Resume', id: _id })),
-              { type: 'Resume', id: 'LIST' },
-            ]
+            ...result.data.resumes.map(({ _id }) => ({ type: 'Resume', id: _id })),
+            { type: 'Resume', id: 'LIST' },
+          ]
           : [{ type: 'Resume', id: 'LIST' }],
     }),
-listVersions: builder.query({
-  query: (id) => `/resumes/${id}/versions`,
-  providesTags: (result, error, id) => [
-    { type: "Resume", id },
-    { type: "ResumeVersions", id },
-  ],
-}),
+    listVersions: builder.query({
+      query: (id) => `/resumes/${id}/versions`,
+      providesTags: (result, error, id) => [
+        { type: "Resume", id },
+        { type: "ResumeVersion", id }, // Fixed to singular!
+      ],
+    }),
 
-restoreVersion: builder.mutation({
-  query: ({ id, versionNumber }) => ({
-    url: `/resumes/${id}/versions/${versionNumber}/restore`,
-    method: "POST",
-  }),
-  invalidatesTags: (result, error, { id }) => [
-    { type: "Resume", id },
-    { type: "ResumeVersions", id },
-  ],
-}),
+    restoreVersion: builder.mutation({
+      query: ({ id, versionNumber }) => ({
+        url: `/resumes/${id}/versions/${versionNumber}/restore`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Resume", id },
+        { type: "ResumeVersion", id }, // Fixed to singular!
+      ],
+    }),
     getResume: builder.query({
       query: (id) => `/resumes/${id}`,
       providesTags: (result, error, id) => [{ type: 'Resume', id }],
@@ -41,10 +41,15 @@ restoreVersion: builder.mutation({
     }),
 
     updateResume: builder.mutation({
-      query: ({ id, ...data }) => ({ url: `/resumes/${id}`, method: 'PATCH', body: data }),
+      query: ({ id, saveVersion, ...data }) => ({
+        url: `/resumes/${id}?saveVersion=${saveVersion}`,
+        method: 'PATCH',
+        body: data
+      }),
       invalidatesTags: (result, error, { id }) => [
         { type: 'Resume', id },
         { type: 'Resume', id: 'LIST' },
+        { type: 'ResumeVersion', id }, // Also invalidate versions (singular!)
       ],
     }),
 
@@ -56,6 +61,15 @@ restoreVersion: builder.mutation({
     duplicateResume: builder.mutation({
       query: (id) => ({ url: `/resumes/${id}/duplicate`, method: 'POST' }),
       invalidatesTags: [{ type: 'Resume', id: 'LIST' }],
+    }),
+
+    generatePDF: builder.mutation({
+      query: (data) => ({
+        url: '/pdf/generate',
+        method: 'POST',
+        body: data,
+        responseHandler: async (response) => response.blob(),
+      }),
     }),
   }),
 });
@@ -69,4 +83,5 @@ export const {
   useDuplicateResumeMutation,
   useListVersionsQuery,
   useRestoreVersionMutation,
+  useGeneratePDFMutation,
 } = resumeApi;

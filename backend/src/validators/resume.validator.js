@@ -29,6 +29,7 @@ const skillItem = z.object({
 const personalInfo = z
   .object({
     fullName: z.string().trim().optional(),
+    jobTitle: z.string().trim().optional(),
     email: z.string().trim().optional(),
     phone: z.string().trim().optional(),
     address: z.string().trim().optional(),
@@ -51,6 +52,7 @@ export const updateResumeSchema = z.object({
   params: z.object({ id: z.string().min(1) }),
   body: z.object({
     title: z.string().trim().min(1).max(150).optional(),
+    template: z.enum(['classic', 'creative', 'executive', 'minimal']).optional(),
     personalInfo: personalInfo.optional(),
     professionalSummary: z.string().optional(),
     experience: z.array(experienceItem).optional(),

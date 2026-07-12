@@ -90,7 +90,7 @@ export default function ModernATS({ data }) {
             PROFESSIONAL SUMMARY
         ============================ */}
         {data?.professionalSummary && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Professional Summary</SectionTitle>
             <p
               className="
@@ -102,18 +102,18 @@ export default function ModernATS({ data }) {
             >
               {data.professionalSummary}
             </p>
-          </>
+          </div>
         )}
 
         {/* ===========================
                EXPERIENCE
         ============================ */}
         {data?.experience?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Professional Experience</SectionTitle>
             <div className="space-y-8">
               {data.experience.map((exp, index) => (
-                <div key={index}>
+                <div key={index} className="avoid-break">
                   {/* Top Row */}
                   <div className="flex justify-between items-start">
                     <div>
@@ -184,18 +184,18 @@ export default function ModernATS({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* ===========================
                 EDUCATION
         ============================ */}
         {data?.education?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Education</SectionTitle>
             <div className="space-y-7">
               {data.education.map((edu, index) => (
-                <div key={index}>
+                <div key={index} className="avoid-break">
                   <div className="flex justify-between items-start">
                     <div>
                       <h3
@@ -234,14 +234,14 @@ export default function ModernATS({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* ===========================
             TECHNICAL SKILLS
         ============================ */}
         {data?.skills?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Technical Skills</SectionTitle>
             <div className="flex flex-wrap gap-3">
               {data.skills.map((skill, index) => (
@@ -265,14 +265,14 @@ export default function ModernATS({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* ===========================
             CERTIFICATIONS
         ============================ */}
         {data?.certifications?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Certifications</SectionTitle>
             <div className="space-y-5">
               {data.certifications.map((cert, index) => (
@@ -285,6 +285,7 @@ export default function ModernATS({ data }) {
                   pb-4
                   border-b
                   border-gray-200
+                  avoid-break
                   "
                 >
                   <div>
@@ -314,18 +315,18 @@ export default function ModernATS({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* ===========================
             PROJECTS
         ============================ */}
         {data?.projects?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Projects</SectionTitle>
             <div className="space-y-8">
               {data.projects.map((project, index) => (
-                <div key={index}>
+                <div key={index} className="avoid-break">
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-[18px] font-bold text-gray-900">
@@ -364,20 +365,20 @@ export default function ModernATS({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* ===========================
                 LANGUAGES
         ============================ */}
         {data?.languages?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Languages</SectionTitle>
             <div className="grid grid-cols-2 gap-5">
               {data.languages.map((lang, index) => (
                 <div
                   key={index}
-                  className="flex justify-between border border-gray-200 rounded-md px-4 py-3"
+                  className="flex justify-between border border-gray-200 rounded-md px-4 py-3 avoid-break"
                 >
                   <span className="font-medium">
                     {lang.name}
@@ -388,33 +389,33 @@ export default function ModernATS({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* ===========================
             ACHIEVEMENTS
         ============================ */}
         {data?.achievements?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Achievements</SectionTitle>
             <div className="space-y-3">
               {data.achievements.map((item, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="w-2 h-2 rounded-full bg-amber-600 mt-3"></div>
+                <div key={index} className="flex gap-3 avoid-break">
+                  <div className="w-3 h-3 rounded-full bg-amber-600 mt-3"></div>
                   <p className="text-[15px] leading-7 text-gray-700">
                     {item}
                   </p>
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* ===========================
             CORE COMPETENCIES
         ============================ */}
         {data?.strengths?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Core Competencies</SectionTitle>
             <div className="grid grid-cols-2 gap-4">
               {data.strengths.map((item, index) => (
@@ -428,13 +429,14 @@ export default function ModernATS({ data }) {
                   px-4
                   py-3
                   text-[15px]
+                  avoid-break
                   "
                 >
                   {item}
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
       </div>

@@ -1,386 +1,184 @@
-﻿import React from 'react';
+import { useState } from 'react';
+import { X, Target, Check, Copy } from 'lucide-react';
+import { useAnalyzeATSMutation } from '@/features/ai/aiApi';
 
-function SectionTitle({ children }) {
-  return (
-    <div className="mt-10 mb-5">
-      <h2
-        className="
-        text-[15px]
-        font-bold
-        tracking-[3px]
-        uppercase
-        text-gray-900
-        "
-      >
-        {children}
-      </h2>
-      <div
-        className="
-        mt-2
-        h-[2px]
-        bg-gray-200
-        "
-      />
-    </div>
-  );
+function formatResumeData(data) {
+  let text = '';
+  
+  if (data.personalInfo?.name) {
+    text += `${data.personalInfo.name}\n`;
+    if (data.personalInfo?.email) text += `${data.personalInfo.email}\n`;
+    if (data.personalInfo?.phone) text += `${data.personalInfo.phone}\n`;
+    if (data.personalInfo?.location) text += `${data.personalInfo.location}\n`;
+    if (data.personalInfo?.linkedin) text += `${data.personalInfo.linkedin}\n`;
+    text += '\n';
+  }
+  
+  if (data.professionalSummary) {
+    text += `Professional Summary\n${data.professionalSummary}\n\n`;
+  }
+  
+  if (data.experience?.length > 0) {
+    text += `Experience\n`;
+    data.experience.forEach(exp => {
+      text += `${exp.position} at ${exp.company}\n`;
+      text += `${exp.startDate} - ${exp.endDate || 'Present'}\n`;
+      if (exp.description) text += `${exp.description}\n`;
+      text += '\n';
+    });
+  }
+  
+  if (data.education?.length > 0) {
+    text += `Education\n`;
+    data.education.forEach(edu => {
+      text += `${edu.degree}${edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ''}\n`;
+      text += `${edu.school || edu.institution}\n`;
+      text += `${edu.startDate} - ${edu.endDate}\n\n`;
+    });
+  }
+  
+  if (data.skills?.length > 0) {
+    text += `Skills\n`;
+    text += data.skills.map(skill => typeof skill === 'string' ? skill : skill.name).join(', ') + '\n\n';
+  }
+  
+  if (data.projects?.length > 0) {
+    text += `Projects\n`;
+    data.projects.forEach(proj => {
+      text += `${proj.title}\n`;
+      if (proj.techStack) text += `${proj.techStack}\n`;
+      if (proj.description) text += `${proj.description}\n`;
+      text += '\n';
+    });
+  }
+  
+  if (data.certifications?.length > 0) {
+    text += `Certifications\n`;
+    data.certifications.forEach(cert => {
+      text += `${cert.title} - ${cert.organization}\n`;
+      if (cert.issueDate) text += `${cert.issueDate}\n`;
+    });
+    text += '\n';
+  }
+  
+  return text;
 }
 
-export default function ResumeProfile({ data }) {
+export default function ATSModal({ resumeData, onClose }) {
+  const [jobDescription, setJobDescription] = useState('');
+  const [analyzeATS, { isLoading, data: analysisResult }] = useAnalyzeATSMutation();
+  const [copied, setCopied] = useState(false);
+
+  const handleAnalyze = async () => {
+    if (!jobDescription.trim()) return;
+    await analyzeATS({
+      resumeText: formatResumeData(resumeData),
+      jobDescription
+    }).unwrap();
+  };
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className="bg-white min-h-screen p-8 text-gray-800">
-      <div className="max-w-4xl mx-auto">
-        
-        {/* ===========================
-            PROFESSIONAL SUMMARY
-        ============================ */}
-        {data?.professionalSummary && (
-          <>
-            <SectionTitle>Professional Summary</SectionTitle>
-            <p
-              className="
-              text-[15px]
-              leading-8
-              text-gray-700
-              text-justify
-              "
-            >
-              {data.professionalSummary}
-            </p>
-          </>
-        )}
+    <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-paper rounded-2xl p-6 max-w-2xl w-full relative max-h-[85vh] overflow-y-auto">
+        <button onClick={onClose} className="absolute top-4 right-4 text-slate hover:text-ink transition">
+          <X size={18} />
+        </button>
 
-        {/* ===========================
-               EXPERIENCE
-        ============================ */}
-        {data?.experience?.length > 0 && (
-          <>
-            <SectionTitle>Professional Experience</SectionTitle>
-            <div className="space-y-8">
-              {data.experience.map((exp, index) => (
-                <div key={index}>
-                  {/* Top Row */}
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3
-                        className="
-                        text-[19px]
-                        font-bold
-                        text-gray-900
-                        "
-                      >
-                        {exp.position}
-                      </h3>
-                      <p
-                        className="
-                        mt-1
-                        text-[15px]
-                        font-semibold
-                        text-amber-700
-                        "
-                      >
-                        {exp.company}
-                      </p>
-                    </div>
-                    <div
-                      className="
-                      text-sm
-                      text-gray-500
-                      whitespace-nowrap
-                      "
-                    >
-                      {exp.startDate}
-                      {" — "}
-                      {exp.isCurrent ? "Present" : exp.endDate}
-                    </div>
-                  </div>
+        <div className="flex items-center gap-2 mb-1">
+          <Target size={18} className="text-amber" />
+          <h2 className="font-display text-lg font-semibold text-ink">ATS Match Analyzer</h2>
+        </div>
+        <p className="text-slate text-sm mb-5">Paste a job description to see how well your resume matches.</p>
 
-                  {/* Description */}
-                  {exp.description && (
-                    <div className="mt-5 space-y-2">
-                      {exp.description
-                        .split("\n")
-                        .filter(Boolean)
-                        .map((line, i) => (
-                          <div key={i} className="flex gap-3">
-                            <span
-                              className="
-                              mt-[10px]
-                              w-2
-                              h-2
-                              rounded-full
-                              bg-amber-600
-                              shrink-0
-                              "
-                            />
-                            <p
-                              className="
-                              text-[15px]
-                              leading-7
-                              text-gray-700
-                              "
-                            >
-                              {line}
-                            </p>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+        <textarea
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+          placeholder="Paste the job description here..."
+          className="w-full px-3.5 py-2.5 bg-paper-dim border border-slate/15 rounded-lg text-sm text-ink focus:ring-2 focus:ring-amber/40 focus:border-amber outline-none transition mb-4 min-h-[150px] resize-y"
+        />
+
+        <button
+          onClick={handleAnalyze}
+          disabled={isLoading || !jobDescription.trim()}
+          className="w-full bg-ink text-paper py-2.5 rounded-xl font-medium hover:bg-ink-light disabled:opacity-50 transition mb-5"
+        >
+          {isLoading ? 'Analyzing...' : 'Analyze ATS Match'}
+        </button>
+
+        {analysisResult?.data && (
+          <div className="space-y-4">
+            {/* Match Score */}
+            <div className="flex items-center gap-3 p-4 bg-paper-dim border border-slate/10 rounded-xl">
+              <div className="text-3xl font-display font-bold text-amber">
+                {analysisResult.data.matchScore || 0}%
+              </div>
+              <div className="text-sm text-slate">ATS Match Score</div>
             </div>
-          </>
-        )}
 
-        {/* ===========================
-                EDUCATION
-        ============================ */}
-        {data?.education?.length > 0 && (
-          <>
-            <SectionTitle>Education</SectionTitle>
-            <div className="space-y-7">
-              {data.education.map((edu, index) => (
-                <div key={index}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3
-                        className="
-                        text-[18px]
-                        font-bold
-                        text-gray-900
-                        "
-                      >
-                        {edu.degree}
-                        {edu.fieldOfStudy && ` • ${edu.fieldOfStudy}`}
-                      </h3>
-                      <p
-                        className="
-                        mt-1
-                        text-[15px]
-                        font-semibold
-                        text-amber-700
-                        "
-                      >
-                        {edu.institution}
-                      </p>
-                    </div>
-                    <div
-                      className="
-                      text-sm
-                      text-gray-500
-                      whitespace-nowrap
-                      "
-                    >
-                      {edu.startDate}
-                      {" — "}
-                      {edu.endDate}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ===========================
-            TECHNICAL SKILLS
-        ============================ */}
-        {data?.skills?.length > 0 && (
-          <>
-            <SectionTitle>Technical Skills</SectionTitle>
-            <div className="flex flex-wrap gap-3">
-              {data.skills.map((skill, index) => (
-                <div
-                  key={index}
-                  className="
-                  px-4
-                  py-2
-                  rounded-md
-                  border
-                  border-gray-300
-                  bg-gray-50
-                  text-[14px]
-                  font-medium
-                  text-gray-800
-                  hover:bg-gray-100
-                  transition
-                  "
-                >
-                  {skill.name || skill}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ===========================
-            CERTIFICATIONS
-        ============================ */}
-        {data?.certifications?.length > 0 && (
-          <>
-            <SectionTitle>Certifications</SectionTitle>
-            <div className="space-y-5">
-              {data.certifications.map((cert, index) => (
-                <div
-                  key={index}
-                  className="
-                  flex
-                  justify-between
-                  items-center
-                  pb-4
-                  border-b
-                  border-gray-200
-                  "
-                >
-                  <div>
-                    <h3 className="text-[16px] font-semibold">
-                      {cert.title}
-                    </h3>
-                    <p
-                      className="
-                      mt-1
-                      text-sm
-                      text-gray-500
-                      "
-                    >
-                      {cert.organization}
-                    </p>
-                  </div>
-                  {cert.issueDate && (
+            {/* Matched Keywords */}
+            {analysisResult.data.matchedKeywords?.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-ink mb-2">Matched Keywords</h3>
+                <div className="flex flex-wrap gap-2">
+                  {analysisResult.data.matchedKeywords.map((kw, idx) => (
                     <span
-                      className="
-                      text-sm
-                      text-gray-500
-                      "
+                      key={idx}
+                      className="px-3 py-1 bg-emerald/10 text-emerald text-xs font-medium rounded-full"
                     >
-                      {cert.issueDate}
+                      {kw}
                     </span>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
-          </>
-        )}
+              </div>
+            )}
 
-        {/* ===========================
-            PROJECTS
-        ============================ */}
-        {data?.projects?.length > 0 && (
-          <>
-            <SectionTitle>Projects</SectionTitle>
-            <div className="space-y-8">
-              {data.projects.map((project, index) => (
-                <div key={index}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-[18px] font-bold text-gray-900">
-                        {project.title}
-                      </h3>
-                      <p className="mt-1 text-[15px] text-amber-700">
-                        {project.techStack}
-                      </p>
-                    </div>
-                    <div className="flex gap-3 text-sm">
-                      {project.liveUrl && (
-                        <a
-                          href={project.liveUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Live
-                        </a>
-                      )}
-                      {project.github && (
-                        <a
-                          href={project.github}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-gray-700 hover:underline"
-                        >
-                          GitHub
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                  <p className="mt-4 text-[15px] leading-7 text-gray-700">
-                    {project.description}
-                  </p>
+            {/* Missing Keywords */}
+            {analysisResult.data.missingKeywords?.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-ink mb-2">Missing Keywords</h3>
+                <div className="flex flex-wrap gap-2">
+                  {analysisResult.data.missingKeywords.map((kw, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1 bg-red/10 text-red text-xs font-medium rounded-full"
+                    >
+                      {kw}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </>
-        )}
+              </div>
+            )}
 
-        {/* ===========================
-                LANGUAGES
-        ============================ */}
-        {data?.languages?.length > 0 && (
-          <>
-            <SectionTitle>Languages</SectionTitle>
-            <div className="grid grid-cols-2 gap-5">
-              {data.languages.map((lang, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between border border-gray-200 rounded-md px-4 py-3"
-                >
-                  <span className="font-medium">
-                    {lang.name}
-                  </span>
-                  <span className="text-gray-500">
-                    {lang.level}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+            {/* Suggestions */}
+            {analysisResult.data.suggestions?.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-ink mb-2">Suggestions</h3>
+                <ul className="space-y-2 text-sm text-slate">
+                  {analysisResult.data.suggestions.map((sugg, idx) => (
+                    <li key={idx} className="flex gap-2 items-start">
+                      <span className="text-amber mt-1">•</span>
+                      <span>{sugg}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-        {/* ===========================
-            ACHIEVEMENTS
-        ============================ */}
-        {data?.achievements?.length > 0 && (
-          <>
-            <SectionTitle>Achievements</SectionTitle>
-            <div className="space-y-3">
-              {data.achievements.map((item, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="w-2 h-2 rounded-full bg-amber-600 mt-3"></div>
-                  <p className="text-[15px] leading-7 text-gray-700">
-                    {item}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </>
+            <button
+              onClick={() => handleCopy(JSON.stringify(analysisResult.data, null, 2))}
+              className="flex items-center gap-1.5 text-amber hover:text-amber/80 transition text-sm font-medium"
+            >
+              {copied ? <Check size={15} className="text-emerald" /> : <Copy size={15} />}
+              {copied ? 'Copied!' : 'Copy Full Analysis'}
+            </button>
+          </div>
         )}
-
-        {/* ===========================
-            CORE COMPETENCIES
-        ============================ */}
-        {data?.strengths?.length > 0 && (
-          <>
-            <SectionTitle>Core Competencies</SectionTitle>
-            <div className="grid grid-cols-2 gap-4">
-              {data.strengths.map((item, index) => (
-                <div
-                  key={index}
-                  className="
-                  bg-gray-50
-                  border
-                  border-gray-200
-                  rounded-md
-                  px-4
-                  py-3
-                  text-[15px]
-                  "
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
       </div>
     </div>
   );

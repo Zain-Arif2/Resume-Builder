@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import { nanoid } from 'nanoid';
 
 const experienceSchema = new mongoose.Schema(
@@ -7,7 +7,7 @@ const experienceSchema = new mongoose.Schema(
     position: { type: String, required: true, trim: true },
     location: { type: String, trim: true },
     startDate: { type: Date, required: true },
-    endDate: { type: Date }, // null = "Present"
+    endDate: { type: Date },
     isCurrent: { type: Boolean, default: false },
     description: { type: String, trim: true },
     bullets: [{ type: String, trim: true }],
@@ -113,13 +113,14 @@ const resumeSchema = new mongoose.Schema(
       default: 'Untitled Resume',
     },
     template: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Template',
+      type: String,
+      enum: ['classic', 'creative', 'executive', 'minimal'],
+      default: 'classic',
     },
 
-    // ─── Personal Information ───────────────────────────
     personalInfo: {
       fullName: { type: String, trim: true },
+      jobTitle: { type: String, trim: true },
       email: { type: String, trim: true },
       phone: { type: String, trim: true },
       address: { type: String, trim: true },
@@ -143,7 +144,6 @@ const resumeSchema = new mongoose.Schema(
     references: [referenceSchema],
     customSections: [customSectionSchema],
 
-    // ─── Section ordering (drag & drop) ─────────────────
     sectionOrder: {
       type: [String],
       default: [
@@ -160,11 +160,9 @@ const resumeSchema = new mongoose.Schema(
       ],
     },
 
-    // ─── Sharing ─────────────────────────────────────────
     isPublic: { type: Boolean, default: false },
     publicSlug: { type: String, unique: true, sparse: true },
 
-    // ─── Meta ────────────────────────────────────────────
     lastEditedAt: { type: Date, default: Date.now },
     currentVersion: { type: Number, default: 1 },
   },
@@ -173,7 +171,6 @@ const resumeSchema = new mongoose.Schema(
 
 resumeSchema.index({ user: 1, createdAt: -1 });
 
-// Public share slug generate karo agar isPublic true ho aur slug abhi tak na ho
 resumeSchema.pre('save', function generateSlug(next) {
   if (this.isPublic && !this.publicSlug) {
     this.publicSlug = nanoid(10);

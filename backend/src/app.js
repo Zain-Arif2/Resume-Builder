@@ -36,8 +36,8 @@ const globalLimiter = rateLimit({
 app.use('/api', globalLimiter);
 
 // ─── Body Parsing ───────────────────────────────────────
-app.use(express.json({ limit: '10kb' })); // Payload size limit — DoS se bachao
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '50mb' })); // Increased to 50mb for PDF generation
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // ─── Request Logging ────────────────────────────────────

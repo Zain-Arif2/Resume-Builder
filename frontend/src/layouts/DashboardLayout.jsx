@@ -1,6 +1,6 @@
 ﻿import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { LayoutGrid, User, LogOut } from 'lucide-react';
+import { LayoutGrid, User, LogOut, Users, BarChart3, ScrollText } from 'lucide-react';
 import { selectCurrentUser, forceLogout } from '@/features/auth/authSlice';
 import { useLogoutMutation } from '@/features/auth/authApi';
 
@@ -22,6 +22,12 @@ export default function DashboardLayout({ children }) {
     { to: '/profile', label: 'Profile', icon: User },
   ];
 
+  const adminNavItems = [
+    { to: '/admin/users', label: 'Users', icon: Users },
+    { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    { to: '/admin/logs', label: 'Logs', icon: ScrollText },
+  ];
+
   return (
     <div className="min-h-screen bg-paper-dim">
       <header className="sticky top-0 z-40 bg-paper border-b border-slate/10">
@@ -36,15 +42,30 @@ export default function DashboardLayout({ children }) {
                 key={to}
                 to={to}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                  location.pathname === to
-                    ? 'bg-amber-dim text-ink'
-                    : 'text-slate hover:text-ink hover:bg-paper-dim'
+                  location.pathname === to ? 'bg-amber-dim text-ink' : 'text-slate hover:text-ink hover:bg-paper-dim'
                 }`}
               >
                 <Icon size={16} />
                 {label}
               </Link>
             ))}
+            {user?.role === 'admin' && (
+              <>
+                <span className="w-px h-5 bg-slate/20 mx-1" />
+                {adminNavItems.map(({ to, label, icon: Icon }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                      location.pathname === to ? 'bg-amber-dim text-ink' : 'text-slate hover:text-ink hover:bg-paper-dim'
+                    }`}
+                  >
+                    <Icon size={16} />
+                    {label}
+                  </Link>
+                ))}
+              </>
+            )}
           </nav>
 
           <div className="flex items-center gap-3">

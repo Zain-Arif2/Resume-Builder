@@ -45,21 +45,21 @@ export default function MinimalResume({ data }) {
 
         {/* Professional Summary */}
         {data?.professionalSummary && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Summary</SectionTitle>
             <p className="text-[14px] leading-6 text-gray-600 text-justify font-light">
               {data.professionalSummary}
             </p>
-          </>
+          </div>
         )}
 
         {/* Experience */}
         {data?.experience?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Experience</SectionTitle>
             <div className="space-y-6">
               {data.experience.map((exp, index) => (
-                <div key={index} className="grid grid-cols-4 gap-4 items-start">
+                <div key={index} className="grid grid-cols-4 gap-4 items-start avoid-break">
                   <div className="text-xs text-gray-400 font-medium pt-1">
                     {exp.startDate} — {exp.endDate || "Present"}
                   </div>
@@ -75,16 +75,16 @@ export default function MinimalResume({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* Education */}
         {data?.education?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Education</SectionTitle>
             <div className="space-y-4">
               {data.education.map((edu, index) => (
-                <div key={index} className="grid grid-cols-4 gap-4 items-start">
+                <div key={index} className="grid grid-cols-4 gap-4 items-start avoid-break">
                   <div className="text-xs text-gray-400 font-medium pt-0.5">
                     {edu.startDate} — {edu.endDate}
                   </div>
@@ -97,13 +97,13 @@ export default function MinimalResume({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* Skills & Others Layout */}
         <div className="grid grid-cols-2 gap-8 mt-4">
           {data?.skills?.length > 0 && (
-            <div>
+            <div className="avoid-break">
               <SectionTitle>Skills</SectionTitle>
               <div className="flex flex-wrap gap-x-4 gap-y-2 text-[13.5px] text-gray-600 font-light">
                 {data.skills.map((skill, index) => (
@@ -114,11 +114,11 @@ export default function MinimalResume({ data }) {
           )}
 
           {data?.languages?.length > 0 && (
-            <div>
+            <div className="avoid-break">
               <SectionTitle>Languages</SectionTitle>
               <div className="space-y-1 text-[13.5px] text-gray-600 font-light">
                 {data.languages.map((lang, index) => (
-                  <div key={index} className="flex justify-between">
+                  <div key={index} className="flex justify-between avoid-break">
                     <span>{lang.name}</span>
                     <span className="text-gray-400 text-xs">{lang.level}</span>
                   </div>

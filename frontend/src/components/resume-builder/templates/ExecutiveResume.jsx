@@ -44,21 +44,21 @@ export default function ExecutiveResume({ data }) {
 
         {/* Professional Summary */}
         {data?.professionalSummary && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Executive Profile</SectionTitle>
             <p className="text-[14.5px] leading-7 text-slate-700 text-justify font-sans">
               {data.professionalSummary}
             </p>
-          </>
+          </div>
         )}
 
         {/* Experience */}
         {data?.experience?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Leadership & Professional History</SectionTitle>
             <div className="space-y-6">
               {data.experience.map((exp, index) => (
-                <div key={index} className="border-b border-slate-100 pb-4 last:border-0">
+                <div key={index} className="border-b border-slate-100 pb-4 last:border-0 avoid-break">
                   <div className="flex justify-between items-baseline font-sans">
                     <h3 className="text-base font-bold text-slate-900">{exp.position}</h3>
                     <span className="text-xs text-slate-500 font-medium">
@@ -75,16 +75,16 @@ export default function ExecutiveResume({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* Education */}
         {data?.education?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Education & Credentials</SectionTitle>
             <div className="space-y-4 font-sans">
               {data.education.map((edu, index) => (
-                <div key={index} className="flex justify-between items-start">
+                <div key={index} className="flex justify-between items-start avoid-break">
                   <div>
                     <h3 className="font-bold text-sm text-slate-900">{edu.degree}</h3>
                     <p className="text-xs text-slate-600">{edu.school || edu.institution}</p>
@@ -93,21 +93,21 @@ export default function ExecutiveResume({ data }) {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
         {/* Core Strengths Grid */}
         {data?.strengths?.length > 0 && (
-          <>
+          <div className="avoid-break">
             <SectionTitle>Core Competencies</SectionTitle>
             <div className="grid grid-cols-3 gap-3 font-sans text-xs text-center">
               {data.strengths.map((item, index) => (
-                <div key={index} className="bg-slate-50 border border-slate-200 py-2 px-3 rounded-sm font-medium text-slate-700">
+                <div key={index} className="bg-slate-50 border border-slate-200 py-2 px-3 rounded-sm font-medium text-slate-700 avoid-break">
                   {item}
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
 
       </div>

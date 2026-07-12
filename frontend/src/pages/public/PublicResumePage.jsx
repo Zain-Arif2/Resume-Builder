@@ -1,4 +1,4 @@
-﻿import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useGetPublicResumeQuery } from '@/features/resume/resumeApi';
 import ResumePreview from '@/components/resume-builder/ResumePreview';
 import PageLoader from '@/components/common/PageLoader';
@@ -24,7 +24,7 @@ export default function PublicResumePage() {
   return (
     <div className="min-h-screen bg-paper-dim py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        <ResumePreview data={data.data.resume} />
+        <ResumePreview data={data.data.resume} template={data.data.resume.template} />
         <p className="text-center text-slate text-xs font-mono mt-6">
           Built with <Link to="/" className="text-amber hover:underline">ResumeAI</Link>
         </p>
