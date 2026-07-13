@@ -1,4 +1,5 @@
 ﻿import { adminRepository } from '../repositories/admin.repository.js';
+import { creditService } from '../services/credit.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ROLES } from '../constants/index.js';
 
@@ -28,19 +29,47 @@ export const adminService = {
     await adminRepository.deleteUser(userId);
   },
 
+  // ─── Credit / Plan Management ─────────────────────────
+  async increaseUserCredits(userId, amount) {
+    return creditService.increaseCredits(userId, amount);
+  },
+
+  async resetUserCredits(userId, amount) {
+    return creditService.resetCredits(userId, amount);
+  },
+
+  async upgradeUserToPro(userId) {
+    return creditService.upgradeToPro(userId);
+  },
+
+  async downgradeUserToFree(userId) {
+    return creditService.downgradeToFree(userId);
+  },
+
   async getAnalytics() {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const [totalUsers, activeUsers7d, totalResumes, publicResumes, totalAIRequests, aiUsageByFeature, signupsLast7Days] =
-      await Promise.all([
-        adminRepository.countUsers(),
-        adminRepository.countActiveUsersSince(sevenDaysAgo),
-        adminRepository.countResumes(),
-        adminRepository.countPublicResumes(),
-        adminRepository.countAIRequests(),
-        adminRepository.aiUsageByFeature(),
-        adminRepository.signupsLast7Days(),
-      ]);
+    const [
+      totalUsers,
+      activeUsers7d,
+      totalResumes,
+      publicResumes,
+      totalAIRequests,
+      totalGeneratedResumes,
+      proUsers,
+      aiUsageByFeature,
+      signupsLast7Days,
+    ] = await Promise.all([
+      adminRepository.countUsers(),
+      adminRepository.countActiveUsersSince(sevenDaysAgo),
+      adminRepository.countResumes(),
+      adminRepository.countPublicResumes(),
+      adminRepository.countAIRequests(),
+      adminRepository.sumTotalGenerated(),
+      adminRepository.countProUsers(),
+      adminRepository.aiUsageByFeature(),
+      adminRepository.signupsLast7Days(),
+    ]);
 
     return {
       totalUsers,
@@ -48,6 +77,8 @@ export const adminService = {
       totalResumes,
       publicResumes,
       totalAIRequests,
+      totalGeneratedResumes,
+      proUsers,
       aiUsageByFeature,
       signupsLast7Days,
     };

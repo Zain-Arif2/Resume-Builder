@@ -13,3 +13,13 @@ export const toggleUserActiveSchema = z.object({
 export const userIdParamSchema = z.object({
   params: z.object({ id: z.string().min(1) }),
 });
+
+export const increaseCreditsSchema = z.object({
+  params: z.object({ id: z.string().min(1) }),
+  body: z.object({ amount: z.number().int().positive().max(1000) }),
+});
+
+export const resetCreditsSchema = z.object({
+  params: z.object({ id: z.string().min(1) }),
+  body: z.object({ amount: z.number().int().positive().max(1000).optional() }),
+});

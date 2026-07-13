@@ -18,7 +18,8 @@ import VersionHistoryModal from '@/components/resume-builder/VersionHistoryModal
 import CareerToolsModal from '@/components/resume-builder/CareerToolsModal';
 import TemplatePickerModal from '@/components/resume-builder/TemplatePickerModal';
 import { getTemplateById } from '@/components/resume-builder/templates';
-import { useGetResumeQuery, useUpdateResumeMutation, useGeneratePDFMutation } from '@/features/resume/resumeApi';
+import { useGetResumeQuery, useUpdateResumeMutation } from '@/features/resume/resumeApi';
+import { downloadPDF } from '@/services/pdfService';
 
 const A4_WIDTH = 794;
 const A4_HEIGHT = 1123;
@@ -31,8 +32,8 @@ export default function ResumeBuilderPage() {
   const navigate = useNavigate();
   const { data, isLoading, refetch } = useGetResumeQuery(id);
   const [updateResume, { isLoading: isSaving }] = useUpdateResumeMutation();
-  const [generatePDF, { isLoading: isGeneratingPDF }] = useGeneratePDFMutation();
-  const [lastSaved, setLastSaved] = useState(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+ const [lastSaved, setLastSaved] = useState(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [atsOpen, setAtsOpen] = useState(false);
   const [coverLetterOpen, setCoverLetterOpen] = useState(false);
@@ -86,29 +87,47 @@ export default function ResumeBuilderPage() {
   );
 
   const handleDownloadPDF = useCallback(async () => {
-    try {
-      const activeTemplate = getTemplateById(watchedValues.template || 'classic');
-      const TemplateComponent = activeTemplate.component;
-      // Render template to HTML string
-      const resumeHTML = renderToString(
-        <div style={{ width: '210mm', minHeight: '297mm', backgroundColor: 'white' }}>
-          <TemplateComponent data={watchedValues} />
-        </div>
-      );
-      
-      const blob = await generatePDF({ html: resumeHTML, css: '' }).unwrap();
-      // Download the PDF
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${watchedValues.title || 'Resume'}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('PDF generation failed:', err);
-      alert('Failed to generate PDF. Please try again.');
-    }
-  }, [watchedValues, generatePDF]);
+  try {
+    setIsGeneratingPDF(true);
+
+    const activeTemplate = getTemplateById(
+      watchedValues.template || "classic"
+    );
+
+    const TemplateComponent = activeTemplate.component;
+
+    const resumeHTML = renderToString(
+      <div
+        style={{
+          width: "210mm",
+          minHeight: "297mm",
+          backgroundColor: "white",
+        }}
+      >
+        <TemplateComponent data={watchedValues} />
+      </div>
+    );
+
+    const blob = await downloadPDF(resumeHTML);
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${watchedValues.title || "Resume"}.pdf`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("PDF generation failed:", err);
+    alert("Failed to generate PDF. Please try again.");
+  } finally {
+    setIsGeneratingPDF(false);
+  }
+}, [watchedValues]);
 
   const onManualSave = handleSubmit((values) => saveResume(values, true));
 

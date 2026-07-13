@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { ROLES } from '../constants/index.js';
+import { ROLES, PLANS, SUBSCRIPTION_STATUS, DEFAULT_FREE_CREDITS } from '../constants/index.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -28,6 +28,29 @@ const userSchema = new mongoose.Schema(
       enum: Object.values(ROLES),
       default: ROLES.USER,
     },
+
+    // ─── Subscription / Credit System ───────────────────
+    plan: {
+      type: String,
+      enum: Object.values(PLANS),
+      default: PLANS.FREE,
+    },
+    resumeCredits: {
+      type: Number,
+      default: DEFAULT_FREE_CREDITS,
+      min: 0,
+    },
+    totalResumeGenerated: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: Object.values(SUBSCRIPTION_STATUS),
+      default: SUBSCRIPTION_STATUS.INACTIVE,
+    },
+
     isEmailVerified: {
       type: Boolean,
       default: false,

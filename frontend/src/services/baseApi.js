@@ -1,16 +1,15 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+﻿import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { openUpgradeModal } from '@/features/credits/creditSlice';
 
 const baseQuery = fetchBaseQuery({
   baseUrl: '/api/v1',
-  credentials: 'include', // HTTP-only cookies (access/refresh token) automatically bhejne ke liye
+  credentials: 'include',
 });
 
-// Base query jo 401 par automatically refresh-token endpoint try karta hai
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error && result.error.status === 401) {
-    // Refresh token cookie se naya access token lene ki koshish
     const refreshResult = await baseQuery(
       { url: '/auth/refresh-token', method: 'POST' },
       api,
@@ -18,12 +17,16 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     );
 
     if (refreshResult.data) {
-      // Refresh successful — original request retry karo
       result = await baseQuery(args, api, extraOptions);
     } else {
-      // Refresh bhi fail — user ko logout state mein bhejo
       api.dispatch({ type: 'auth/forceLogout' });
     }
+  }
+
+  // Any AI/resume-generation call that hits the free-plan limit surfaces here,
+  // regardless of which feature triggered it. One place, no duplicated handling.
+  if (result.error && result.error.status === 403 && result.error.data?.code === 'FREE_LIMIT_REACHED') {
+    api.dispatch(openUpgradeModal());
   }
 
   return result;
@@ -33,5 +36,5 @@ export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
   tagTypes: ['User', 'Resume', 'ResumeVersion', 'Template', 'AIHistory', 'Notification', 'Admin'],
-  endpoints: () => ({}), // Har feature apne endpoints "injectEndpoints" se add karega
+  endpoints: () => ({}),
 });

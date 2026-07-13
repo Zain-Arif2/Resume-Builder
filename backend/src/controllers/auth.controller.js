@@ -3,11 +3,23 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { setAuthCookies, clearAuthCookies } from '../utils/cookieUtils.js';
 import { COOKIE_NAMES } from '../constants/index.js';
+import { User } from '../models/User.model.js';
+import { ApiError } from '../utils/ApiError.js';
 
 export const authController = {
   register: asyncHandler(async (req, res) => {
     const user = await authService.register(req.body);
-    return new ApiResponse(201, { user: user.toSafeObject() }, 'Registration successful').send(res);
+    return new ApiResponse(201, { email: user.email }, 'Registration successful, please verify your email').send(res);
+  }),
+
+  verifyOtp: asyncHandler(async (req, res) => {
+    await authService.verifyOtp(req.body.email, req.body.otp);
+    return new ApiResponse(200, null, 'Email verified successfully, you can now log in').send(res);
+  }),
+
+  resendOtp: asyncHandler(async (req, res) => {
+    await authService.resendOtp(req.body.email);
+    return new ApiResponse(200, null, 'A new verification code has been sent').send(res);
   }),
 
   login: asyncHandler(async (req, res) => {
@@ -31,7 +43,11 @@ export const authController = {
   }),
 
   getMe: asyncHandler(async (req, res) => {
-    return new ApiResponse(200, { user: req.user }, 'Current user fetched').send(res);
+    // req.user only holds the JWT payload (sub, role). Credits/plan live in the DB
+    // and change over time, so always return the fresh document here.
+    const user = await User.findById(req.user.sub);
+    if (!user) throw ApiError.notFound('User not found');
+    return new ApiResponse(200, { user: user.toSafeObject() }, 'Current user fetched').send(res);
   }),
 
   forgotPassword: asyncHandler(async (req, res) => {

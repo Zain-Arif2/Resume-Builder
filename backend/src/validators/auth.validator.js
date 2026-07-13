@@ -19,6 +19,19 @@ export const loginSchema = z.object({
   }),
 });
 
+export const verifyOtpSchema = z.object({
+  body: z.object({
+    email: z.string().trim().toLowerCase().email('Invalid email address'),
+    otp: z.string().length(6, 'Code must be 6 digits'),
+  }),
+});
+
+export const resendOtpSchema = z.object({
+  body: z.object({
+    email: z.string().trim().toLowerCase().email('Invalid email address'),
+  }),
+});
+
 export const forgotPasswordSchema = z.object({
   body: z.object({
     email: z.string().trim().toLowerCase().email('Invalid email address'),

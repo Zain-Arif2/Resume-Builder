@@ -26,6 +26,26 @@ export const adminController = {
     return new ApiResponse(200, null, 'User deleted').send(res);
   }),
 
+  increaseCredits: asyncHandler(async (req, res) => {
+    const user = await adminService.increaseUserCredits(req.params.id, req.body.amount);
+    return new ApiResponse(200, { user }, 'Credits increased').send(res);
+  }),
+
+  resetCredits: asyncHandler(async (req, res) => {
+    const user = await adminService.resetUserCredits(req.params.id, req.body.amount);
+    return new ApiResponse(200, { user }, 'Credits reset').send(res);
+  }),
+
+  upgradeToPro: asyncHandler(async (req, res) => {
+    const user = await adminService.upgradeUserToPro(req.params.id);
+    return new ApiResponse(200, { user }, 'User upgraded to Pro').send(res);
+  }),
+
+  downgradeToFree: asyncHandler(async (req, res) => {
+    const user = await adminService.downgradeUserToFree(req.params.id);
+    return new ApiResponse(200, { user }, 'User downgraded to Free').send(res);
+  }),
+
   getAnalytics: asyncHandler(async (req, res) => {
     const analytics = await adminService.getAnalytics();
     return new ApiResponse(200, { analytics }, 'Analytics fetched').send(res);

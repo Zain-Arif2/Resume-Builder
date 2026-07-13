@@ -1,29 +1,37 @@
-﻿import nodemailer from 'nodemailer';
+﻿import { Resend } from 'resend';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 
-let transporter;
+let resendClient;
 
-function getTransporter() {
-  if (transporter) return transporter;
-  transporter = nodemailer.createTransport({
-    host: env.smtp.host,
-    port: env.smtp.port,
-    secure: env.smtp.port === 465,
-    auth: env.smtp.user ? { user: env.smtp.user, pass: env.smtp.pass } : undefined,
-  });
-  return transporter;
+function getResendClient() {
+  if (resendClient) return resendClient;
+  resendClient = new Resend(env.resend.apiKey);
+  return resendClient;
 }
 
 export async function sendEmail({ to, subject, text, html }) {
-  if (!env.smtp.host || !env.smtp.user) {
-    logger.warn({ to, subject, text }, 'SMTP not configured, logging email instead of sending');
+  if (!env.resend.apiKey) {
+    logger.warn({ to, subject, text }, 'Resend API key not configured, logging email instead of sending');
     return;
   }
 
   try {
-    await getTransporter().sendMail({ from: env.smtp.from, to, subject, text, html });
+    const { data, error } = await getResendClient().emails.send({
+      from: env.resend.from,
+      to,
+      subject,
+      text,
+      html: html || `<p>${text.replace(/\n/g, '<br/>')}</p>`,
+    });
+
+    if (error) {
+      logger.error({ error, to }, 'Resend failed to send email');
+      return;
+    }
+
+    logger.info({ to, emailId: data?.id }, 'Email sent via Resend');
   } catch (error) {
-    logger.error({ error, to }, 'Failed to send email');
+    logger.error({ error, to }, 'Failed to send email via Resend');
   }
 }

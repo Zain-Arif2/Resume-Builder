@@ -8,6 +8,7 @@ import { loginFormSchema } from '@/features/auth/authSchemas';
 import { useLoginMutation } from '@/features/auth/authApi';
 import { setCredentials } from '@/features/auth/authSlice';
 import AuthLayout from '@/layouts/AuthLayout';
+import PasswordInput from '@/components/auth/PasswordInput';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -44,6 +45,11 @@ export default function LoginPage() {
             Account created, log in to continue.
           </div>
         )}
+        {location.state?.verified && (
+          <div className="mb-5 px-4 py-3 rounded-xl bg-emerald-dim text-emerald text-sm font-medium">
+            Email verified! You can now log in.
+          </div>
+        )}
 
         {serverError && (
           <div className="mb-5 px-4 py-3 rounded-xl bg-danger-dim text-danger text-sm font-medium">
@@ -70,12 +76,7 @@ export default function LoginPage() {
                 Forgot?
               </Link>
             </div>
-            <input
-              type="password"
-              {...register('password')}
-              className="w-full px-4 py-2.5 bg-paper border border-slate/20 rounded-xl text-ink placeholder:text-slate/50 focus:ring-2 focus:ring-amber/40 focus:border-amber outline-none transition"
-              placeholder="********"
-            />
+            <PasswordInput {...register('password')} placeholder="********" />
             {errors.password && <p className="text-danger text-xs mt-1.5">{errors.password.message}</p>}
           </div>
 

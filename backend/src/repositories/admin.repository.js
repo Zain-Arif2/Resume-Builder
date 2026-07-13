@@ -49,6 +49,15 @@ export const adminRepository = {
     return AIHistory.countDocuments();
   },
 
+  async sumTotalGenerated() {
+    const result = await User.aggregate([{ $group: { _id: null, total: { $sum: '$totalResumeGenerated' } } }]);
+    return result[0]?.total || 0;
+  },
+
+  async countProUsers() {
+    return User.countDocuments({ plan: 'pro' });
+  },
+
   async aiUsageByFeature() {
     return AIHistory.aggregate([
       { $group: { _id: '$feature', count: { $sum: 1 }, totalTokens: { $sum: '$totalTokens' } } },

@@ -1,13 +1,14 @@
-import { User } from '../models/User.model.js';
+﻿import { User } from '../models/User.model.js';
 
 export const userRepository = {
   async create(data) {
     return User.create(data);
   },
 
-  async findByEmail(email, withPassword = false) {
+  async findByEmail(email, withPassword = false, withVerification = false) {
     const query = User.findOne({ email });
     if (withPassword) query.select('+password');
+    if (withVerification) query.select('+emailVerificationToken +emailVerificationExpires');
     return query;
   },
 

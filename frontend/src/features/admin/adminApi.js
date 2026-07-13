@@ -22,6 +22,22 @@ export const adminApi = baseApi.injectEndpoints({
       query: (id) => ({ url: `/admin/users/${id}`, method: 'DELETE' }),
       invalidatesTags: [{ type: 'Admin', id: 'LIST' }],
     }),
+    increaseCredits: builder.mutation({
+      query: ({ id, amount }) => ({ url: `/admin/users/${id}/credits/increase`, method: 'PATCH', body: { amount } }),
+      invalidatesTags: [{ type: 'Admin', id: 'LIST' }],
+    }),
+    resetCredits: builder.mutation({
+      query: ({ id, amount }) => ({ url: `/admin/users/${id}/credits/reset`, method: 'PATCH', body: { amount } }),
+      invalidatesTags: [{ type: 'Admin', id: 'LIST' }],
+    }),
+    upgradeToPro: builder.mutation({
+      query: (id) => ({ url: `/admin/users/${id}/upgrade`, method: 'PATCH' }),
+      invalidatesTags: [{ type: 'Admin', id: 'LIST' }],
+    }),
+    downgradeToFree: builder.mutation({
+      query: (id) => ({ url: `/admin/users/${id}/downgrade`, method: 'PATCH' }),
+      invalidatesTags: [{ type: 'Admin', id: 'LIST' }],
+    }),
     getAnalytics: builder.query({
       query: () => '/admin/analytics',
     }),
@@ -36,6 +52,10 @@ export const {
   useUpdateUserRoleMutation,
   useToggleUserActiveMutation,
   useDeleteUserMutation,
+  useIncreaseCreditsMutation,
+  useResetCreditsMutation,
+  useUpgradeToProMutation,
+  useDowngradeToFreeMutation,
   useGetAnalyticsQuery,
   useGetSystemLogsQuery,
 } = adminApi;

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { LayoutGrid, User, LogOut, Users, BarChart3, ScrollText } from 'lucide-react';
 import { selectCurrentUser, forceLogout } from '@/features/auth/authSlice';
 import { useLogoutMutation } from '@/features/auth/authApi';
+import CreditBadge from '@/components/dashboard/CreditBadge';
 
 export default function DashboardLayout({ children }) {
   const user = useSelector(selectCurrentUser);
@@ -31,12 +32,12 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="min-h-screen bg-paper-dim">
       <header className="sticky top-0 z-40 bg-paper border-b border-slate/10">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="font-display font-semibold text-xl text-ink tracking-tight">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+          <Link to="/dashboard" className="font-display font-semibold text-xl text-ink tracking-tight shrink-0">
             Resume<span className="text-amber">AI</span>
           </Link>
 
-          <nav className="hidden sm:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-1">
             {navItems.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
@@ -68,7 +69,11 @@ export default function DashboardLayout({ children }) {
             )}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <CreditBadge />
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
             <span className="hidden sm:block text-sm font-medium text-ink">{user?.name}</span>
             <button
               onClick={handleLogout}
@@ -78,6 +83,10 @@ export default function DashboardLayout({ children }) {
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
+        </div>
+
+        <div className="md:hidden px-6 pb-3">
+          <CreditBadge />
         </div>
       </header>
 

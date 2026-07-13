@@ -2,6 +2,7 @@
 import rateLimit from 'express-rate-limit';
 import { aiController } from '../../controllers/ai.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
+import { checkResumeCredits } from '../../middleware/checkResumeCredits.js';
 import { validate } from '../../middleware/validate.js';
 import {
   professionalSummarySchema,
@@ -25,7 +26,7 @@ const aiLimiter = rateLimit({
   message: { success: false, message: 'Too many AI requests, please slow down.' },
 });
 
-router.use(authenticate, aiLimiter);
+router.use(authenticate, aiLimiter, checkResumeCredits());
 
 router.post('/professional-summary', validate(professionalSummarySchema), aiController.professionalSummary);
 router.post('/improve-experience', validate(improveExperienceSchema), aiController.improveExperience);

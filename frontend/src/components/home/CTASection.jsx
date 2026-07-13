@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function CTASection() {
   return (
-    <section id="how-it-works" className="bg-ink py-20">
+    <section className="bg-ink py-20">
       <div className="max-w-3xl mx-auto px-6 text-center">
         <h2 className="font-display text-3xl sm:text-4xl font-semibold text-paper mb-4">
           Stop guessing what recruiters want.

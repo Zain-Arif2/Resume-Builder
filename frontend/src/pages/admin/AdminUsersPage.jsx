@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Search, Trash2, Shield, ShieldOff } from 'lucide-react';
+import { Search, Trash2, Shield, ShieldOff, Plus, RotateCcw, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageLoader from '@/components/common/PageLoader';
 import {
@@ -7,6 +7,10 @@ import {
   useUpdateUserRoleMutation,
   useToggleUserActiveMutation,
   useDeleteUserMutation,
+  useIncreaseCreditsMutation,
+  useResetCreditsMutation,
+  useUpgradeToProMutation,
+  useDowngradeToFreeMutation,
 } from '@/features/admin/adminApi';
 
 export default function AdminUsersPage() {
@@ -16,6 +20,10 @@ export default function AdminUsersPage() {
   const [updateRole] = useUpdateUserRoleMutation();
   const [toggleActive] = useToggleUserActiveMutation();
   const [deleteUser] = useDeleteUserMutation();
+  const [increaseCredits] = useIncreaseCreditsMutation();
+  const [resetCredits] = useResetCreditsMutation();
+  const [upgradeToPro] = useUpgradeToProMutation();
+  const [downgradeToFree] = useDowngradeToFreeMutation();
 
   const users = data?.data?.users || [];
   const pages = data?.data?.pages || 1;
@@ -32,6 +40,30 @@ export default function AdminUsersPage() {
   const handleDelete = (user) => {
     if (confirm(`Delete ${user.name}? This cannot be undone.`)) {
       deleteUser(user._id);
+    }
+  };
+
+  const handleIncreaseCredits = (user) => {
+    const amount = prompt(`How many credits to add for ${user.name}?`, '2');
+    const parsed = parseInt(amount, 10);
+    if (parsed > 0) increaseCredits({ id: user._id, amount: parsed });
+  };
+
+  const handleResetCredits = (user) => {
+    if (confirm(`Reset ${user.name}'s credits to 2?`)) {
+      resetCredits({ id: user._id, amount: 2 });
+    }
+  };
+
+  const handleUpgrade = (user) => {
+    if (confirm(`Upgrade ${user.name} to Pro?`)) {
+      upgradeToPro(user._id);
+    }
+  };
+
+  const handleDowngrade = (user) => {
+    if (confirm(`Downgrade ${user.name} to Free? Credits will reset to 2.`)) {
+      downgradeToFree(user._id);
     }
   };
 
@@ -53,23 +85,25 @@ export default function AdminUsersPage() {
       {isLoading ? (
         <PageLoader />
       ) : (
-        <div className="bg-paper border border-slate/10 rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-paper border border-slate/10 rounded-2xl overflow-x-auto">
+          <table className="w-full text-sm min-w-[900px]">
             <thead className="bg-paper-dim text-slate text-xs uppercase tracking-wide">
               <tr>
                 <th className="text-left px-5 py-3 font-medium">Name</th>
                 <th className="text-left px-5 py-3 font-medium">Email</th>
                 <th className="text-left px-5 py-3 font-medium">Role</th>
                 <th className="text-left px-5 py-3 font-medium">Status</th>
-                <th className="text-left px-5 py-3 font-medium">Joined</th>
+                <th className="text-left px-5 py-3 font-medium">Plan</th>
+                <th className="text-left px-5 py-3 font-medium">Credits</th>
+                <th className="text-left px-5 py-3 font-medium">Generated</th>
                 <th className="text-right px-5 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate/10">
               {users.map((user) => (
                 <tr key={user._id}>
-                  <td className="px-5 py-3 font-medium text-ink">{user.name}</td>
-                  <td className="px-5 py-3 text-slate">{user.email}</td>
+                  <td className="px-5 py-3 font-medium text-ink whitespace-nowrap">{user.name}</td>
+                  <td className="px-5 py-3 text-slate whitespace-nowrap">{user.email}</td>
                   <td className="px-5 py-3">
                     <span className={`text-xs font-medium px-2 py-1 rounded-md ${user.role === 'admin' ? 'bg-amber-dim text-amber' : 'bg-paper-dim text-slate'}`}>
                       {user.role}
@@ -80,15 +114,36 @@ export default function AdminUsersPage() {
                       {user.isActive ? 'Active' : 'Disabled'}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-slate font-mono text-xs">
-                    {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </td>
                   <td className="px-5 py-3">
-                    <div className="flex items-center justify-end gap-2">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-md ${user.plan === 'pro' ? 'bg-emerald-dim text-emerald' : 'bg-paper-dim text-slate'}`}>
+                      {user.plan === 'pro' ? 'PRO' : 'FREE'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 font-mono text-xs text-slate">
+                    {user.plan === 'pro' ? '∞' : `${user.resumeCredits ?? 0} / 2`}
+                  </td>
+                  <td className="px-5 py-3 font-mono text-xs text-slate">{user.totalResumeGenerated ?? 0}</td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                      <button onClick={() => handleIncreaseCredits(user)} title="Increase credits" className="text-slate hover:text-emerald transition">
+                        <Plus size={15} />
+                      </button>
+                      <button onClick={() => handleResetCredits(user)} title="Reset credits" className="text-slate hover:text-amber transition">
+                        <RotateCcw size={14} />
+                      </button>
+                      {user.plan === 'pro' ? (
+                        <button onClick={() => handleDowngrade(user)} title="Downgrade to Free" className="text-slate hover:text-danger transition">
+                          <ArrowDownCircle size={15} />
+                        </button>
+                      ) : (
+                        <button onClick={() => handleUpgrade(user)} title="Upgrade to Pro" className="text-slate hover:text-emerald transition">
+                          <ArrowUpCircle size={15} />
+                        </button>
+                      )}
                       <button onClick={() => handleRoleToggle(user)} title="Toggle admin role" className="text-slate hover:text-amber transition">
                         {user.role === 'admin' ? <ShieldOff size={15} /> : <Shield size={15} />}
                       </button>
-                      <button onClick={() => handleStatusToggle(user)} title="Toggle active status" className="text-xs font-medium text-slate hover:text-ink transition px-2">
+                      <button onClick={() => handleStatusToggle(user)} title="Toggle active status" className="text-xs font-medium text-slate hover:text-ink transition px-1">
                         {user.isActive ? 'Disable' : 'Enable'}
                       </button>
                       <button onClick={() => handleDelete(user)} title="Delete user" className="text-slate hover:text-danger transition">

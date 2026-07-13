@@ -5,6 +5,8 @@ import { validate } from '../../middleware/validate.js';
 import {
   registerSchema,
   loginSchema,
+  verifyOtpSchema,
+  resendOtpSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   updateProfileSchema,
@@ -13,6 +15,8 @@ import {
 const router = Router();
 
 router.post('/register', validate(registerSchema), authController.register);
+router.post('/verify-otp', validate(verifyOtpSchema), authController.verifyOtp);
+router.post('/resend-otp', validate(resendOtpSchema), authController.resendOtp);
 router.post('/login', validate(loginSchema), authController.login);
 router.post('/refresh-token', authController.refreshToken);
 router.post('/logout', authenticate, authController.logout);

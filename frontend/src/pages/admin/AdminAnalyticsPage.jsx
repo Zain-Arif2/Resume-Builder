@@ -23,12 +23,16 @@ export default function AdminAnalyticsPage() {
     <DashboardLayout>
       <h1 className="font-display text-2xl font-semibold text-ink mb-6">Analytics</h1>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <StatCard label="Total Users" value={analytics?.totalUsers ?? 0} />
         <StatCard label="Active (7 days)" value={analytics?.activeUsers7d ?? 0} />
+        <StatCard label="Pro Subscribers" value={analytics?.proUsers ?? 0} />
         <StatCard label="Total Resumes" value={analytics?.totalResumes ?? 0} />
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard label="Public Resumes" value={analytics?.publicResumes ?? 0} />
         <StatCard label="AI Requests" value={analytics?.totalAIRequests ?? 0} />
+        <StatCard label="Total AI Resumes Generated" value={analytics?.totalGeneratedResumes ?? 0} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { registerFormSchema } from '@/features/auth/authSchemas';
 import { useRegisterMutation } from '@/features/auth/authApi';
 import AuthLayout from '@/layouts/AuthLayout';
+import PasswordInput from '@/components/auth/PasswordInput';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export default function RegisterPage() {
     setServerError('');
     try {
       await registerUser(data).unwrap();
-      navigate('/login', { state: { registered: true } });
+      navigate('/verify-otp', { state: { email: data.email } });
     } catch (err) {
       setServerError(err?.data?.message || 'Registration failed. Please try again.');
     }
@@ -65,12 +66,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-sm font-medium text-ink mb-1.5">Password</label>
-            <input
-              type="password"
-              {...register('password')}
-              className="w-full px-4 py-2.5 bg-paper border border-slate/20 rounded-xl text-ink placeholder:text-slate/50 focus:ring-2 focus:ring-amber/40 focus:border-amber outline-none transition"
-              placeholder="********"
-            />
+            <PasswordInput {...register('password')} placeholder="********" />
             {errors.password && <p className="text-danger text-xs mt-1.5">{errors.password.message}</p>}
             <p className="text-slate/60 text-xs mt-1.5">At least 8 characters, one uppercase letter, one number.</p>
           </div>

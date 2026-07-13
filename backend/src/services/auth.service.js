@@ -11,6 +11,10 @@ function buildTokenPayload(user) {
   return { sub: user._id.toString(), role: user.role };
 }
 
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+}
+
 export const authService = {
   async register({ name, email, password }) {
     const existingUser = await userRepository.findByEmail(email);
@@ -18,19 +22,75 @@ export const authService = {
       throw ApiError.conflict('An account with this email already exists');
     }
 
-    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
-    const emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+    const otp = generateOTP();
+    const hashedOtp = hashToken(otp);
+    const emailVerificationExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     const user = await userRepository.create({
       name,
       email,
       password,
-      emailVerificationToken,
+      emailVerificationToken: hashedOtp,
       emailVerificationExpires,
     });
 
-    authLogger.info({ userId: user._id }, 'New user registered');
+    await sendEmail({
+      to: user.email,
+      subject: 'Verify your email - ResumeAI',
+      text: `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.`,
+    });
+
+    authLogger.info({ userId: user._id }, 'New user registered, OTP sent');
     return user;
+  },
+
+  async verifyOtp(email, otp) {
+    const user = await userRepository.findByEmail(email, false, true);
+    if (!user) throw ApiError.notFound('No account found with this email');
+
+    if (user.isEmailVerified) {
+      throw ApiError.badRequest('This email is already verified');
+    }
+
+    if (!user.emailVerificationExpires || user.emailVerificationExpires < Date.now()) {
+      throw ApiError.badRequest('Verification code has expired, please request a new one');
+    }
+
+    const hashedOtp = hashToken(otp);
+    if (hashedOtp !== user.emailVerificationToken) {
+      throw ApiError.badRequest('Invalid verification code');
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save();
+
+    authLogger.info({ userId: user._id }, 'Email verified successfully');
+    return user;
+  },
+
+  async resendOtp(email) {
+    const user = await userRepository.findByEmail(email);
+    if (!user) throw ApiError.notFound('No account found with this email');
+    if (user.isEmailVerified) throw ApiError.badRequest('This email is already verified');
+
+    const otp = generateOTP();
+    const hashedOtp = hashToken(otp);
+    const emailVerificationExpires = Date.now() + 10 * 60 * 1000;
+
+    await userRepository.updateById(user._id, {
+      emailVerificationToken: hashedOtp,
+      emailVerificationExpires,
+    });
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Your new verification code - ResumeAI',
+      text: `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.`,
+    });
+
+    authLogger.info({ userId: user._id }, 'OTP resent');
   },
 
   async login({ email, password }) {
@@ -40,6 +100,10 @@ export const authService = {
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) throw ApiError.unauthorized('Invalid email or password');
+
+    if (!user.isEmailVerified) {
+      throw ApiError.forbidden('Please verify your email before logging in');
+    }
 
     const payload = buildTokenPayload(user);
     const accessToken = generateAccessToken(payload);
@@ -86,7 +150,7 @@ export const authService = {
 
   async forgotPassword(email) {
     const user = await userRepository.findByEmail(email);
-    if (!user) return; // Don't reveal whether the account exists
+    if (!user) return;
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = hashToken(resetToken);
