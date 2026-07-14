@@ -1,11 +1,62 @@
-﻿import { Link, useNavigate, useLocation } from 'react-router-dom';
+﻿import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { LayoutGrid, User, LogOut, Users, BarChart3, ScrollText } from 'lucide-react';
+import { LayoutGrid, User, LogOut, Users, BarChart3, ScrollText, CreditCard, Menu, X, Sparkles } from 'lucide-react';
 import { selectCurrentUser, forceLogout } from '@/features/auth/authSlice';
 import { useLogoutMutation } from '@/features/auth/authApi';
-import CreditBadge from '@/components/dashboard/CreditBadge';
 
-export default function DashboardLayout({ children }) {
+const mainNav = [
+  { to: '/dashboard', label: 'Resumes', icon: LayoutGrid },
+  { to: '/pricing', label: 'Pricing', icon: Sparkles },
+  { to: '/profile', label: 'Profile', icon: User },
+];
+
+const adminNav = [
+  { to: '/admin/users', label: 'Users', icon: Users },
+  { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/admin/plans', label: 'Plans', icon: CreditCard },
+  { to: '/admin/logs', label: 'Logs', icon: ScrollText },
+];
+
+function NavLink({ to, label, icon: Icon, active, onClick }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+        active ? 'bg-amber-dim text-ink' : 'text-slate hover:text-ink hover:bg-paper-dim'
+      }`}
+    >
+      <Icon size={17} />
+      {label}
+    </Link>
+  );
+}
+
+function CreditIndicator() {
+  const user = useSelector(selectCurrentUser);
+  if (!user) return null;
+
+  if (user.plan === 'pro') {
+    return (
+      <div className="flex items-center gap-2 bg-emerald-dim text-emerald px-3 py-2.5 rounded-xl text-xs font-medium">
+        <Sparkles size={13} /> Pro — Unlimited
+      </div>
+    );
+  }
+
+  const remaining = user.resumeCredits ?? 0;
+  const isLow = remaining === 0;
+
+  return (
+    <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium ${isLow ? 'bg-danger-dim text-danger' : 'bg-amber-dim text-ink'}`}>
+      <Sparkles size={13} className={isLow ? 'text-danger' : 'text-amber'} />
+      {remaining} / 2 credits
+    </div>
+  );
+}
+
+function SidebarContent({ onNavigate }) {
   const user = useSelector(selectCurrentUser);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -18,79 +69,82 @@ export default function DashboardLayout({ children }) {
     navigate('/login');
   };
 
-  const navItems = [
-    { to: '/dashboard', label: 'Resumes', icon: LayoutGrid },
-    { to: '/profile', label: 'Profile', icon: User },
-  ];
+  return (
+    <div className="flex flex-col h-full">
+      <Link to="/dashboard" className="font-display font-semibold text-xl text-ink tracking-tight px-1 mb-8 block">
+        Resume<span className="text-amber">AI</span>
+      </Link>
 
-  const adminNavItems = [
-    { to: '/admin/users', label: 'Users', icon: Users },
-    { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-    { to: '/admin/logs', label: 'Logs', icon: ScrollText },
-  ];
+      <nav className="flex-1 space-y-1">
+        {mainNav.map((item) => (
+          <NavLink key={item.to} {...item} active={location.pathname === item.to} onClick={onNavigate} />
+        ))}
+
+        {user?.role === 'admin' && (
+          <>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate/50 px-3.5 pt-6 pb-2">Admin</p>
+            {adminNav.map((item) => (
+              <NavLink key={item.to} {...item} active={location.pathname === item.to} onClick={onNavigate} />
+            ))}
+          </>
+        )}
+      </nav>
+
+      <div className="space-y-3 pt-4 border-t border-slate/10">
+        <CreditIndicator />
+
+        <div className="flex items-center justify-between px-1">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-ink truncate">{user?.name}</p>
+            <p className="text-xs text-slate truncate">{user?.email}</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            className="text-slate hover:text-danger transition shrink-0 ml-2"
+          >
+            <LogOut size={17} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function DashboardLayout({ children }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-paper-dim">
-      <header className="sticky top-0 z-40 bg-paper border-b border-slate/10">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
-          <Link to="/dashboard" className="font-display font-semibold text-xl text-ink tracking-tight shrink-0">
-            Resume<span className="text-amber">AI</span>
-          </Link>
+    <div className="min-h-screen bg-paper-dim lg:flex">
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 bg-paper border-r border-slate/10 p-5 sticky top-0 h-screen">
+        <SidebarContent />
+      </aside>
 
-          <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                  location.pathname === to ? 'bg-amber-dim text-ink' : 'text-slate hover:text-ink hover:bg-paper-dim'
-                }`}
-              >
-                <Icon size={16} />
-                {label}
-              </Link>
-            ))}
-            {user?.role === 'admin' && (
-              <>
-                <span className="w-px h-5 bg-slate/20 mx-1" />
-                {adminNavItems.map(({ to, label, icon: Icon }) => (
-                  <Link
-                    key={to}
-                    to={to}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                      location.pathname === to ? 'bg-amber-dim text-ink' : 'text-slate hover:text-ink hover:bg-paper-dim'
-                    }`}
-                  >
-                    <Icon size={16} />
-                    {label}
-                  </Link>
-                ))}
-              </>
-            )}
-          </nav>
+      {/* Mobile topbar */}
+      <div className="lg:hidden sticky top-0 z-40 bg-paper border-b border-slate/10 flex items-center justify-between px-5 h-16">
+        <Link to="/dashboard" className="font-display font-semibold text-lg text-ink tracking-tight">
+          Resume<span className="text-amber">AI</span>
+        </Link>
+        <button onClick={() => setMobileOpen(true)} className="text-ink">
+          <Menu size={22} />
+        </button>
+      </div>
 
-          <div className="hidden md:block">
-            <CreditBadge />
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="hidden sm:block text-sm font-medium text-ink">{user?.name}</span>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-danger hover:bg-danger-dim transition"
-            >
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Logout</span>
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div className="relative bg-paper w-72 h-full p-5 flex flex-col">
+            <button onClick={() => setMobileOpen(false)} className="self-end text-slate hover:text-ink mb-4">
+              <X size={20} />
             </button>
+            <SidebarContent onNavigate={() => setMobileOpen(false)} />
           </div>
         </div>
+      )}
 
-        <div className="md:hidden px-6 pb-3">
-          <CreditBadge />
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
+      <main className="flex-1 min-w-0 px-5 sm:px-8 py-8 max-w-5xl mx-auto w-full">{children}</main>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Search, Trash2, Shield, ShieldOff, Plus, RotateCcw, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Search, Trash2, Shield, ShieldOff, Plus, RotateCcw, ArrowUpCircle, ArrowDownCircle, Users, AlertTriangle } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageLoader from '@/components/common/PageLoader';
 import {
@@ -16,7 +16,7 @@ import {
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const { data, isLoading } = useListUsersQuery({ page, limit: 15, search });
+  const { data, isLoading, isError, error } = useListUsersQuery({ page, limit: 15, search });
   const [updateRole] = useUpdateUserRoleMutation();
   const [toggleActive] = useToggleUserActiveMutation();
   const [deleteUser] = useDeleteUserMutation();
@@ -26,6 +26,7 @@ export default function AdminUsersPage() {
   const [downgradeToFree] = useDowngradeToFreeMutation();
 
   const users = data?.data?.users || [];
+  const total = data?.data?.total || 0;
   const pages = data?.data?.pages || 1;
 
   const handleRoleToggle = (user) => {
@@ -67,10 +68,32 @@ export default function AdminUsersPage() {
     }
   };
 
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-danger-dim flex items-center justify-center mb-4">
+            <AlertTriangle size={22} className="text-danger" />
+          </div>
+          <h2 className="font-display text-lg font-semibold text-ink mb-1">Could not load users</h2>
+          <p className="text-slate text-sm max-w-sm">
+            {error?.data?.message || 'You may not have admin access with your current session. Try logging out and back in.'}
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 className="font-display text-2xl font-semibold text-ink">User Management</h1>
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-ink">User Management</h1>
+          <p className="flex items-center gap-1.5 text-slate text-sm mt-1">
+            <Users size={14} />
+            {total} total user{total !== 1 ? 's' : ''} registered
+          </p>
+        </div>
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate/50" />
           <input
@@ -83,9 +106,9 @@ export default function AdminUsersPage() {
       </div>
 
       {isLoading ? (
-        <PageLoader />
+        <div className="mt-6"><PageLoader /></div>
       ) : (
-        <div className="bg-paper border border-slate/10 rounded-2xl overflow-x-auto">
+        <div className="bg-paper border border-slate/10 rounded-2xl overflow-x-auto mt-6">
           <table className="w-full text-sm min-w-[900px]">
             <thead className="bg-paper-dim text-slate text-xs uppercase tracking-wide">
               <tr>
@@ -153,6 +176,11 @@ export default function AdminUsersPage() {
                   </td>
                 </tr>
               ))}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-5 py-10 text-center text-slate text-sm">No users found.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

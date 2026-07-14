@@ -23,8 +23,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     }
   }
 
-  // Any AI/resume-generation call that hits the free-plan limit surfaces here,
-  // regardless of which feature triggered it. One place, no duplicated handling.
   if (result.error && result.error.status === 403 && result.error.data?.code === 'FREE_LIMIT_REACHED') {
     api.dispatch(openUpgradeModal());
   }
@@ -35,6 +33,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['User', 'Resume', 'ResumeVersion', 'Template', 'AIHistory', 'Notification', 'Admin'],
+  tagTypes: ['User', 'Resume', 'ResumeVersion', 'Template', 'AIHistory', 'Notification', 'Admin', 'Plan'],
   endpoints: () => ({}),
 });

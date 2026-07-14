@@ -22,7 +22,7 @@ export default function UpgradeModal() {
 
   const handleUpgrade = () => {
     dispatch(closeUpgradeModal());
-    navigate('/profile');
+    navigate('/pricing');
   };
 
   return (

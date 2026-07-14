@@ -2,6 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDispatch, useSelector } from 'react-redux';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Sparkles, Check } from 'lucide-react';
 import { updateProfileFormSchema } from '@/features/auth/authSchemas';
 import { useUpdateProfileMutation } from '@/features/auth/authApi';
@@ -42,13 +43,16 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-lg space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-ink mb-1">Profile</h1>
-          <p className="text-slate text-sm">Manage your account details.</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="font-display text-2xl font-semibold text-ink mb-1">Profile</h1>
+        <p className="text-slate text-sm">Manage your account details and subscription.</p>
+      </div>
 
-        <div className="bg-paper border border-slate/10 rounded-2xl p-6">
+      <div className="grid lg:grid-cols-5 gap-6 items-start">
+        {/* Account details */}
+        <div className="lg:col-span-3 bg-paper border border-slate/10 rounded-2xl p-6">
+          <h2 className="font-display font-semibold text-ink mb-5">Account Details</h2>
+
           {success && (
             <div className="mb-5 px-4 py-3 rounded-xl bg-emerald-dim text-emerald text-sm font-medium">
               Profile updated successfully.
@@ -87,11 +91,12 @@ export default function ProfilePage() {
           </form>
         </div>
 
-        <div className="bg-paper border border-slate/10 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
+        {/* Subscription */}
+        <div className="lg:col-span-2 bg-paper border border-slate/10 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-5">
             <h2 className="font-display font-semibold text-ink">Subscription</h2>
             <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
+              className={`text-xs font-semibold px-2.5 py-1 rounded-md shrink-0 ${
                 isPro ? 'bg-emerald-dim text-emerald' : 'bg-paper-dim text-slate'
               }`}
             >
@@ -100,16 +105,26 @@ export default function ProfilePage() {
           </div>
 
           {isPro ? (
-            <p className="text-slate text-sm">
-              You're on the Pro plan with unlimited AI resume generations. Total generated so far:{' '}
-              <span className="font-medium text-ink">{user?.totalResumeGenerated ?? 0}</span>.
-            </p>
+            <div className="space-y-4">
+              <div className="bg-emerald-dim rounded-xl p-4">
+                <p className="text-emerald text-sm font-medium flex items-center gap-2">
+                  <Sparkles size={15} /> Unlimited generations active
+                </p>
+              </div>
+              <p className="text-slate text-sm">
+                Total resumes generated: <span className="font-semibold text-ink">{user?.totalResumeGenerated ?? 0}</span>
+              </p>
+            </div>
           ) : (
             <>
-              <p className="text-slate text-sm mb-4">
-                <span className="font-medium text-ink">{user?.resumeCredits ?? 0} / 2</span> free AI resume generations remaining.
-              </p>
-              <ul className="space-y-2 mb-5">
+              <div className="bg-paper-dim rounded-xl p-4 mb-5">
+                <p className="text-xs text-slate mb-1">Remaining credits</p>
+                <p className="font-display text-2xl font-semibold text-ink">
+                  {user?.resumeCredits ?? 0} <span className="text-sm text-slate font-normal">/ 2</span>
+                </p>
+              </div>
+
+              <ul className="space-y-2.5 mb-6">
                 {perks.map((perk) => (
                   <li key={perk} className="flex items-center gap-2.5 text-sm text-ink">
                     <span className="w-5 h-5 rounded-full bg-emerald-dim flex items-center justify-center shrink-0">
@@ -119,9 +134,13 @@ export default function ProfilePage() {
                   </li>
                 ))}
               </ul>
-              <button className="flex items-center gap-2 bg-ink text-paper px-5 py-2.5 rounded-xl font-medium hover:bg-ink-light transition text-sm">
-                <Sparkles size={15} /> Upgrade to Pro
-              </button>
+
+              <Link
+                to="/pricing"
+                className="flex items-center justify-center gap-2 bg-ink text-paper px-5 py-2.5 rounded-xl font-medium hover:bg-ink-light transition text-sm w-full"
+              >
+                <Sparkles size={15} /> View Plans
+              </Link>
             </>
           )}
         </div>

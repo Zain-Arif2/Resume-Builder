@@ -10,7 +10,7 @@ export const adminRepository = {
     const skip = (page - 1) * limit;
 
     const [users, total] = await Promise.all([
-      User.find(query).select('-password -refreshTokens').sort('-createdAt').skip(skip).limit(limit),
+      User.find(query).select('-password').sort('-createdAt').skip(skip).limit(limit),
       User.countDocuments(query),
     ]);
 
@@ -18,11 +18,11 @@ export const adminRepository = {
   },
 
   async findUserById(id) {
-    return User.findById(id).select('-password -refreshTokens');
+    return User.findById(id).select('-password');
   },
 
   async updateUser(id, update) {
-    return User.findByIdAndUpdate(id, update, { new: true, runValidators: true }).select('-password -refreshTokens');
+    return User.findByIdAndUpdate(id, update, { new: true, runValidators: true }).select('-password');
   },
 
   async deleteUser(id) {
