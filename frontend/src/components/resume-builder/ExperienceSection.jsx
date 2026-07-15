@@ -54,11 +54,13 @@ export default function ExperienceSection({ control, register, setValue, watch }
             <div className="grid sm:grid-cols-2 gap-3 mb-3 pr-8">
               <input
                 {...register(`experience.${index}.position`)}
+                 required
                 placeholder="Position"
                 className="px-3.5 py-2 bg-paper-dim border border-slate/15 rounded-lg text-sm text-ink focus:ring-2 focus:ring-amber/40 focus:border-amber outline-none transition"
               />
               <input
                 {...register(`experience.${index}.company`)}
+                 required
                 placeholder="Company"
                 className="px-3.5 py-2 bg-paper-dim border border-slate/15 rounded-lg text-sm text-ink focus:ring-2 focus:ring-amber/40 focus:border-amber outline-none transition"
               />

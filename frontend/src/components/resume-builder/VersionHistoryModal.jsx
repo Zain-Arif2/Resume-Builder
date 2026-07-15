@@ -1,5 +1,33 @@
 ﻿import { X, History, RotateCcw } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useListVersionsQuery, useRestoreVersionMutation } from '@/features/resume/resumeApi';
+
+function confirmToast(message) {
+  return new Promise((resolve) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-ink">{message}</p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(false); }}
+              className="text-xs font-medium text-slate px-3 py-1.5 rounded-lg border border-slate/20 hover:border-slate/40"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(true); }}
+              className="text-xs font-medium text-paper bg-ink px-3 py-1.5 rounded-lg hover:bg-ink-light"
+            >
+              Restore
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 10000 }
+    );
+  });
+}
 
 export default function VersionHistoryModal({ resumeId, onClose, onRestored }) {
   const { data, isLoading } = useListVersionsQuery(resumeId);
@@ -8,10 +36,16 @@ export default function VersionHistoryModal({ resumeId, onClose, onRestored }) {
   const versions = data?.data?.versions || [];
 
   const handleRestore = async (versionNumber) => {
-    if (!confirm(`Restore version ${versionNumber}? Your current changes will be saved as a new version first.`)) return;
-    await restoreVersion({ id: resumeId, versionNumber }).unwrap();
-    onRestored?.();
-    onClose();
+    const ok = await confirmToast(`Restore version ${versionNumber}? Your current changes will be saved as a new version first.`);
+    if (!ok) return;
+    try {
+      await restoreVersion({ id: resumeId, versionNumber }).unwrap();
+      toast.success(`Restored to version ${versionNumber}`);
+      onRestored?.();
+      onClose();
+    } catch (err) {
+      toast.error(err?.data?.message || 'Could not restore version');
+    }
   };
 
   return (
@@ -34,10 +68,7 @@ export default function VersionHistoryModal({ resumeId, onClose, onRestored }) {
         ) : (
           <div className="space-y-2">
             {versions.map((v) => (
-              <div
-                key={v._id}
-                className="flex items-center justify-between border border-slate/10 rounded-xl px-4 py-3"
-              >
+              <div key={v._id} className="flex items-center justify-between border border-slate/10 rounded-xl px-4 py-3">
                 <div>
                   <p className="text-sm font-medium text-ink">Version {v.versionNumber}</p>
                   <p className="text-xs text-slate font-mono">

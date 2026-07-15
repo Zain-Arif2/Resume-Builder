@@ -1,5 +1,6 @@
 ﻿import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
+import toast from 'react-hot-toast';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import ResumeCard from '@/components/dashboard/ResumeCard';
 import EmptyState from '@/components/dashboard/EmptyState';
@@ -11,6 +12,33 @@ import {
   useDuplicateResumeMutation,
 } from '@/features/resume/resumeApi';
 
+function confirmToast(message) {
+  return new Promise((resolve) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-ink">{message}</p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(false); }}
+              className="text-xs font-medium text-slate px-3 py-1.5 rounded-lg border border-slate/20 hover:border-slate/40"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(true); }}
+              className="text-xs font-medium text-paper bg-danger px-3 py-1.5 rounded-lg hover:opacity-90"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 10000 }
+    );
+  });
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { data, isLoading } = useListResumesQuery({ page: 1, limit: 20 });
@@ -21,18 +49,32 @@ export default function DashboardPage() {
   const resumes = data?.data?.resumes || [];
 
   const handleCreate = async () => {
-    const result = await createResume({ title: 'Untitled Resume' }).unwrap();
-    navigate(`/resume/${result.data.resume._id}/edit`);
+    try {
+      const result = await createResume({ title: 'Untitled Resume' }).unwrap();
+      navigate(`/resume/${result.data.resume._id}/edit`);
+    } catch (err) {
+      toast.error(err?.data?.message || 'Could not create resume');
+    }
   };
 
   const handleDelete = async (id) => {
-    if (confirm('Delete this resume? This cannot be undone.')) {
-      await deleteResume(id);
+    const ok = await confirmToast('Delete this resume? This cannot be undone.');
+    if (!ok) return;
+    try {
+      await deleteResume(id).unwrap();
+      toast.success('Resume deleted');
+    } catch (err) {
+      toast.error(err?.data?.message || 'Could not delete resume');
     }
   };
 
   const handleDuplicate = async (id) => {
-    await duplicateResume(id);
+    try {
+      await duplicateResume(id).unwrap();
+      toast.success('Resume duplicated');
+    } catch (err) {
+      toast.error(err?.data?.message || 'Could not duplicate resume');
+    }
   };
 
   return (

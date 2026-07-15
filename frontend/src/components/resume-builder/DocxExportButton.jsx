@@ -1,8 +1,8 @@
 ﻿import { useState } from 'react';
-import { Download } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function PdfExportButton({ getHtml, fileName = 'resume.pdf' }) {
+export default function DocxExportButton({ getHtml, fileName = 'resume.docx' }) {
   const [loading, setLoading] = useState(false);
 
   const handleExport = async () => {
@@ -10,14 +10,14 @@ export default function PdfExportButton({ getHtml, fileName = 'resume.pdf' }) {
     try {
       const html = getHtml();
 
-      const res = await fetch('/api/v1/pdf/generate', {
+      const res = await fetch('/api/v1/pdf/generate-docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ html, css: '' }),
       });
 
-      if (!res.ok) throw new Error('PDF generation failed');
+      if (!res.ok) throw new Error('DOCX generation failed');
 
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -28,9 +28,9 @@ export default function PdfExportButton({ getHtml, fileName = 'resume.pdf' }) {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      toast.success('PDF downloaded');
+      toast.success('DOCX downloaded');
     } catch (err) {
-      toast.error('Could not export PDF. Please try again.');
+      toast.error('Could not export DOCX. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ export default function PdfExportButton({ getHtml, fileName = 'resume.pdf' }) {
       disabled={loading}
       className="flex items-center gap-1.5 border border-slate/20 text-ink px-4 py-2 rounded-xl text-sm font-medium hover:border-slate/40 transition disabled:opacity-50"
     >
-      <Download size={15} /> {loading ? 'Preparing...' : 'Export PDF'}
+      <FileText size={15} /> {loading ? 'Preparing...' : 'Export DOCX'}
     </button>
   );
 }

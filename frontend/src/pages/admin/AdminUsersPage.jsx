@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react';
 import { Search, Trash2, Shield, ShieldOff, Plus, RotateCcw, ArrowUpCircle, ArrowDownCircle, Users, AlertTriangle } from 'lucide-react';
+import toast from 'react-hot-toast';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageLoader from '@/components/common/PageLoader';
 import {
@@ -12,6 +13,69 @@ import {
   useUpgradeToProMutation,
   useDowngradeToFreeMutation,
 } from '@/features/admin/adminApi';
+
+function confirmToast(message) {
+  return new Promise((resolve) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-ink">{message}</p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(false); }}
+              className="text-xs font-medium text-slate px-3 py-1.5 rounded-lg border border-slate/20 hover:border-slate/40"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(true); }}
+              className="text-xs font-medium text-paper bg-ink px-3 py-1.5 rounded-lg hover:bg-ink-light"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 10000 }
+    );
+  });
+}
+
+function promptToast(message, defaultValue) {
+  return new Promise((resolve) => {
+    let value = defaultValue;
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3 min-w-[220px]">
+          <p className="text-sm text-ink">{message}</p>
+          <input
+            type="number"
+            defaultValue={defaultValue}
+            min="1"
+            autoFocus
+            onChange={(e) => (value = e.target.value)}
+            className="px-3 py-2 border border-slate/20 rounded-lg text-sm outline-none focus:border-amber"
+          />
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(null); }}
+              className="text-xs font-medium text-slate px-3 py-1.5 rounded-lg border border-slate/20 hover:border-slate/40"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(value); }}
+              className="text-xs font-medium text-paper bg-ink px-3 py-1.5 rounded-lg hover:bg-ink-light"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 15000 }
+    );
+  });
+}
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
@@ -29,43 +93,52 @@ export default function AdminUsersPage() {
   const total = data?.data?.total || 0;
   const pages = data?.data?.pages || 1;
 
-  const handleRoleToggle = (user) => {
+  const handleRoleToggle = async (user) => {
     const newRole = user.role === 'admin' ? 'user' : 'admin';
-    updateRole({ id: user._id, role: newRole });
+    await updateRole({ id: user._id, role: newRole }).unwrap();
+    toast.success(`${user.name} is now ${newRole}`);
   };
 
-  const handleStatusToggle = (user) => {
-    toggleActive({ id: user._id, isActive: !user.isActive });
+  const handleStatusToggle = async (user) => {
+    await toggleActive({ id: user._id, isActive: !user.isActive }).unwrap();
+    toast.success(`${user.name} ${user.isActive ? 'disabled' : 'enabled'}`);
   };
 
-  const handleDelete = (user) => {
-    if (confirm(`Delete ${user.name}? This cannot be undone.`)) {
-      deleteUser(user._id);
-    }
+  const handleDelete = async (user) => {
+    const ok = await confirmToast(`Delete ${user.name}? This cannot be undone.`);
+    if (!ok) return;
+    await deleteUser(user._id).unwrap();
+    toast.success(`${user.name} deleted`);
   };
 
-  const handleIncreaseCredits = (user) => {
-    const amount = prompt(`How many credits to add for ${user.name}?`, '2');
+  const handleIncreaseCredits = async (user) => {
+    const amount = await promptToast(`How many credits to add for ${user.name}?`, 2);
     const parsed = parseInt(amount, 10);
-    if (parsed > 0) increaseCredits({ id: user._id, amount: parsed });
-  };
-
-  const handleResetCredits = (user) => {
-    if (confirm(`Reset ${user.name}'s credits to 2?`)) {
-      resetCredits({ id: user._id, amount: 2 });
+    if (parsed > 0) {
+      await increaseCredits({ id: user._id, amount: parsed }).unwrap();
+      toast.success(`Added ${parsed} credits to ${user.name}`);
     }
   };
 
-  const handleUpgrade = (user) => {
-    if (confirm(`Upgrade ${user.name} to Pro?`)) {
-      upgradeToPro(user._id);
-    }
+  const handleResetCredits = async (user) => {
+    const ok = await confirmToast(`Reset ${user.name}'s credits to 2?`);
+    if (!ok) return;
+    await resetCredits({ id: user._id, amount: 2 }).unwrap();
+    toast.success(`${user.name}'s credits reset`);
   };
 
-  const handleDowngrade = (user) => {
-    if (confirm(`Downgrade ${user.name} to Free? Credits will reset to 2.`)) {
-      downgradeToFree(user._id);
-    }
+  const handleUpgrade = async (user) => {
+    const ok = await confirmToast(`Upgrade ${user.name} to Pro?`);
+    if (!ok) return;
+    await upgradeToPro(user._id).unwrap();
+    toast.success(`${user.name} upgraded to Pro`);
+  };
+
+  const handleDowngrade = async (user) => {
+    const ok = await confirmToast(`Downgrade ${user.name} to Free? Credits will reset to 2.`);
+    if (!ok) return;
+    await downgradeToFree(user._id).unwrap();
+    toast.success(`${user.name} downgraded to Free`);
   };
 
   if (isError) {

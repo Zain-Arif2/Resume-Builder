@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react';
 import { Plus, Trash2, Edit2, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageLoader from '@/components/common/PageLoader';
 import {
@@ -8,6 +9,33 @@ import {
   useUpdatePlanMutation,
   useDeletePlanMutation,
 } from '@/features/plans/planApi';
+
+function confirmToast(message) {
+  return new Promise((resolve) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-ink">{message}</p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(false); }}
+              className="text-xs font-medium text-slate px-3 py-1.5 rounded-lg border border-slate/20 hover:border-slate/40"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { toast.dismiss(t.id); resolve(true); }}
+              className="text-xs font-medium text-paper bg-danger px-3 py-1.5 rounded-lg hover:opacity-90"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 10000 }
+    );
+  });
+}
 
 const emptyForm = {
   name: '',
@@ -74,8 +102,10 @@ export default function AdminPlansPage() {
     try {
       if (editingId) {
         await updatePlan({ id: editingId, ...payload }).unwrap();
+        toast.success('Plan updated');
       } else {
         await createPlan(payload).unwrap();
+        toast.success('Plan created');
       }
       setFormOpen(false);
     } catch (err) {
@@ -83,14 +113,16 @@ export default function AdminPlansPage() {
     }
   };
 
-  const handleDelete = (plan) => {
-    if (confirm(`Delete plan "${plan.name}"?`)) {
-      deletePlan(plan._id);
-    }
+  const handleDelete = async (plan) => {
+    const ok = await confirmToast(`Delete plan "${plan.name}"?`);
+    if (!ok) return;
+    await deletePlan(plan._id).unwrap();
+    toast.success('Plan deleted');
   };
 
-  const handleToggleActive = (plan) => {
-    updatePlan({ id: plan._id, isActive: !plan.isActive });
+  const handleToggleActive = async (plan) => {
+    await updatePlan({ id: plan._id, isActive: !plan.isActive }).unwrap();
+    toast.success(`Plan ${plan.isActive ? 'deactivated' : 'activated'}`);
   };
 
   return (
