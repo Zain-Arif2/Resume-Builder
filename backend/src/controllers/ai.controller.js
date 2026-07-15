@@ -33,6 +33,12 @@ export const aiController = {
     return new ApiResponse(200, { analysis }, 'ATS analysis complete').send(res);
   }),
 
+  generalAtsScore: asyncHandler(async (req, res) => {
+    const { resumeId, ...body } = req.body;
+    const analysis = await aiService.analyzeGeneralATS(req.user.sub, body, resumeId);
+    return new ApiResponse(200, { analysis }, 'Resume score calculated').send(res);
+  }),
+
   grammar: asyncHandler(async (req, res) => {
     const correctedText = await aiService.improveGrammar(req.user.sub, req.body);
     return new ApiResponse(200, { correctedText }, 'Grammar improved').send(res);

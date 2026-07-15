@@ -11,6 +11,7 @@ import {
   improveSkillsSchema,
   coverLetterSchema,
   atsAnalysisSchema,
+  generalAtsSchema,
   grammarSchema,
   interviewQuestionsSchema,
   careerSuggestionsSchema,
@@ -26,14 +27,18 @@ const aiLimiter = rateLimit({
   message: { success: false, message: 'Too many AI requests, please slow down.' },
 });
 
-router.use(authenticate, aiLimiter, checkResumeCredits());
+router.use(authenticate, aiLimiter);
 
-router.post('/professional-summary', validate(professionalSummarySchema), aiController.professionalSummary);
-router.post('/improve-experience', validate(improveExperienceSchema), aiController.improveExperience);
-router.post('/improve-projects', validate(improveProjectsSchema), aiController.improveProjects);
-router.post('/improve-skills', validate(improveSkillsSchema), aiController.improveSkills);
-router.post('/cover-letter', validate(coverLetterSchema), aiController.coverLetter);
-router.post('/ats-analysis', validate(atsAnalysisSchema), aiController.atsAnalysis);
+// Credit-gated: these count against the free plan's generation limit
+router.post('/professional-summary', checkResumeCredits(), validate(professionalSummarySchema), aiController.professionalSummary);
+router.post('/improve-experience', checkResumeCredits(), validate(improveExperienceSchema), aiController.improveExperience);
+router.post('/improve-projects', checkResumeCredits(), validate(improveProjectsSchema), aiController.improveProjects);
+router.post('/improve-skills', checkResumeCredits(), validate(improveSkillsSchema), aiController.improveSkills);
+router.post('/cover-letter', checkResumeCredits(), validate(coverLetterSchema), aiController.coverLetter);
+router.post('/ats-analysis', checkResumeCredits(), validate(atsAnalysisSchema), aiController.atsAnalysis);
+
+// Not credit-gated: quick, low-cost checks users should be able to run freely
+router.post('/general-ats-score', validate(generalAtsSchema), aiController.generalAtsScore);
 router.post('/grammar', validate(grammarSchema), aiController.grammar);
 router.post('/interview-questions', validate(interviewQuestionsSchema), aiController.interviewQuestions);
 router.post('/career-suggestions', validate(careerSuggestionsSchema), aiController.careerSuggestions);

@@ -23,6 +23,15 @@ async function runPrompt({ userId, resumeId, feature, prompt, options }) {
   return result.content;
 }
 
+function parseJsonResponse(content) {
+  try {
+    const cleaned = content.replace(/```json|```/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch {
+    throw ApiError.internal('Failed to parse AI response');
+  }
+}
+
 export const aiService = {
   async generateProfessionalSummary(userId, { role, experienceSummary }) {
     const prompt = resumePrompts.professionalSummary({ role, experienceSummary });
@@ -55,13 +64,19 @@ export const aiService = {
   async analyzeATS(userId, { resumeText, jobDescription }) {
     const prompt = resumePrompts.atsAnalysis({ resumeText, jobDescription });
     const content = await runPrompt({ userId, feature: 'atsAnalysis', prompt, options: { temperature: 0.3 } });
+    return parseJsonResponse(content);
+  },
 
-    try {
-      const cleaned = content.replace(/```json|```/g, '').trim();
-      return JSON.parse(cleaned);
-    } catch {
-      throw ApiError.internal('Failed to parse AI analysis response');
-    }
+  async analyzeGeneralATS(userId, { resumeText }, resumeId) {
+    const prompt = resumePrompts.generalAtsScore({ resumeText });
+    const content = await runPrompt({
+      userId,
+      resumeId,
+      feature: 'generalAtsScore',
+      prompt,
+      options: { temperature: 0.3 },
+    });
+    return parseJsonResponse(content);
   },
 
   async improveGrammar(userId, { text }) {

@@ -1,4 +1,5 @@
 ﻿@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --color-ink: #14171F;
@@ -18,6 +19,20 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
+.dark {
+  --color-ink: #F3F4F6;
+  --color-ink-light: #E5E7EB;
+  --color-paper: #1A1D24;
+  --color-paper-dim: #101319;
+  --color-slate: #9AA3AF;
+  --color-amber: #F2A93B;
+  --color-amber-dim: #3A2A10;
+  --color-emerald: #34D399;
+  --color-emerald-dim: #103524;
+  --color-danger: #F87171;
+  --color-danger-dim: #3A1418;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -28,6 +43,7 @@ body {
   -webkit-font-smoothing: antialiased;
   background-color: var(--color-paper-dim);
   color: var(--color-ink);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

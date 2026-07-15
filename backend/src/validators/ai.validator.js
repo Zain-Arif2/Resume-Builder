@@ -44,6 +44,13 @@ export const atsAnalysisSchema = z.object({
   }),
 });
 
+export const generalAtsSchema = z.object({
+  body: z.object({
+    resumeText: z.string().trim().min(1),
+    resumeId: z.string().trim().optional(),
+  }),
+});
+
 export const grammarSchema = z.object({
   body: z.object({
     text: z.string().trim().min(1),

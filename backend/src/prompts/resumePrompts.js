@@ -35,6 +35,16 @@ Job Description:
 ${jobDescription}`;
   },
 
+  generalAtsScore({ resumeText }) {
+    return `You are an ATS (Applicant Tracking System) and resume-quality expert. Evaluate the resume below on general ATS-friendliness and overall quality, independent of any specific job posting. Consider: use of quantifiable achievements, strong action verbs, clarity and conciseness, presence of key sections (summary, experience, education, skills), absence of vague/generic language, and appropriate keyword density for the apparent target role.
+
+Return a JSON object only (no markdown, no explanation) with this exact shape:
+{"score": number (0-100), "strengths": string[] (2-4 short items), "issues": string[] (2-5 short items describing what is weak), "suggestions": string[] (3-6 specific, actionable improvements)}.
+
+Resume:
+${resumeText}`;
+  },
+
   grammarImprovement({ text }) {
     return `Correct any grammar, spelling, and clarity issues in the following resume text. Keep the meaning and tone intact. Return only the corrected text.
 

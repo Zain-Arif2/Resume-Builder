@@ -1,6 +1,7 @@
-import React from 'react';
+﻿import React from "react";
 import { Mail, Phone, MapPin, Globe } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { formatUrl } from "@/utils/formatUrl";
 
 function SectionTitle({ children }) {
   return (
@@ -19,8 +20,6 @@ export default function MinimalResume({ data }) {
   return (
     <div className="bg-white w-full min-h-[1123px] p-12 text-gray-800 font-sans tracking-wide">
       <div className="max-w-3xl mx-auto">
-        
-        {/* Header */}
         <div className="text-center pb-6">
           <h1 className="text-3xl font-light tracking-widest uppercase text-gray-900">
             {personal.fullName || "Your Name"}
@@ -30,36 +29,54 @@ export default function MinimalResume({ data }) {
           </p>
 
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 mt-4 text-xs text-gray-500">
-            {personal.email && <div className="flex items-center gap-1"><Mail size={12} /> {personal.email}</div>}
-            {personal.phone && <div className="flex items-center gap-1"><Phone size={12} /> {personal.phone}</div>}
+            {personal.email && (
+              <a href={`mailto:${personal.email}`} className="flex items-center gap-1 hover:text-gray-800">
+                <Mail size={12} /> {personal.email}
+              </a>
+            )}
+            {personal.phone && (
+              <a href={`tel:${personal.phone}`} className="flex items-center gap-1 hover:text-gray-800">
+                <Phone size={12} /> {personal.phone}
+              </a>
+            )}
             {(personal.city || personal.country) && (
               <div className="flex items-center gap-1">
                 <MapPin size={12} /> {personal.city}{personal.city && personal.country && ", "}{personal.country}
               </div>
             )}
-            {personal.linkedin && <div className="flex items-center gap-1"><FaLinkedin size={12} /> Link</div>}
-            {personal.github && <div className="flex items-center gap-1"><FaGithub size={12} /> GitHub</div>}
-            {personal.website && <div className="flex items-center gap-1"><Globe size={12} /> Web</div>}
+            {personal.linkedin && (
+              <a href={formatUrl(personal.linkedin)} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-gray-800">
+                <FaLinkedin size={12} /> LinkedIn
+              </a>
+            )}
+            {personal.github && (
+              <a href={formatUrl(personal.github)} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-gray-800">
+                <FaGithub size={12} /> GitHub
+              </a>
+            )}
+            {personal.website && (
+              <a href={formatUrl(personal.website)} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-gray-800">
+                <Globe size={12} /> Website
+              </a>
+            )}
           </div>
         </div>
 
-        {/* Professional Summary */}
         {data?.professionalSummary && (
-          <div className="avoid-break">
+          <>
             <SectionTitle>Summary</SectionTitle>
             <p className="text-[14px] leading-6 text-gray-600 text-justify font-light">
               {data.professionalSummary}
             </p>
-          </div>
+          </>
         )}
 
-        {/* Experience */}
         {data?.experience?.length > 0 && (
-          <div className="avoid-break">
+          <>
             <SectionTitle>Experience</SectionTitle>
             <div className="space-y-6">
               {data.experience.map((exp, index) => (
-                <div key={index} className="grid grid-cols-4 gap-4 items-start avoid-break">
+                <div key={index} className="grid grid-cols-4 gap-4 items-start">
                   <div className="text-xs text-gray-400 font-medium pt-1">
                     {exp.startDate} — {exp.endDate || "Present"}
                   </div>
@@ -75,16 +92,15 @@ export default function MinimalResume({ data }) {
                 </div>
               ))}
             </div>
-          </div>
+          </>
         )}
 
-        {/* Education */}
         {data?.education?.length > 0 && (
-          <div className="avoid-break">
+          <>
             <SectionTitle>Education</SectionTitle>
             <div className="space-y-4">
               {data.education.map((edu, index) => (
-                <div key={index} className="grid grid-cols-4 gap-4 items-start avoid-break">
+                <div key={index} className="grid grid-cols-4 gap-4 items-start">
                   <div className="text-xs text-gray-400 font-medium pt-0.5">
                     {edu.startDate} — {edu.endDate}
                   </div>
@@ -97,37 +113,19 @@ export default function MinimalResume({ data }) {
                 </div>
               ))}
             </div>
-          </div>
+          </>
         )}
 
-        {/* Skills & Others Layout */}
-        <div className="grid grid-cols-2 gap-8 mt-4">
-          {data?.skills?.length > 0 && (
-            <div className="avoid-break">
-              <SectionTitle>Skills</SectionTitle>
-              <div className="flex flex-wrap gap-x-4 gap-y-2 text-[13.5px] text-gray-600 font-light">
-                {data.skills.map((skill, index) => (
-                  <span key={index}>{skill.name || skill}</span>
-                ))}
-              </div>
+        {data?.skills?.length > 0 && (
+          <div>
+            <SectionTitle>Skills</SectionTitle>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-[13.5px] text-gray-600 font-light">
+              {data.skills.map((skill, index) => (
+                <span key={index}>{skill.name || skill}</span>
+              ))}
             </div>
-          )}
-
-          {data?.languages?.length > 0 && (
-            <div className="avoid-break">
-              <SectionTitle>Languages</SectionTitle>
-              <div className="space-y-1 text-[13.5px] text-gray-600 font-light">
-                {data.languages.map((lang, index) => (
-                  <div key={index} className="flex justify-between avoid-break">
-                    <span>{lang.name}</span>
-                    <span className="text-gray-400 text-xs">{lang.level}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
+          </div>
+        )}
       </div>
     </div>
   );

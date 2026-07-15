@@ -1,9 +1,7 @@
-
-import { useEffect, useState, useCallback, useRef } from 'react';
+﻿import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
-import { renderToString } from 'react-dom/server';
-import { ArrowLeft, Save, Check, Download, Share2, Target, Mail, History, Briefcase, LayoutTemplate } from 'lucide-react';
+import { ArrowLeft, Save, Check, Download, Target, Mail, History, Briefcase, LayoutTemplate } from 'lucide-react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PageLoader from '@/components/common/PageLoader';
 import PersonalInfoSection from '@/components/resume-builder/PersonalInfoSection';
@@ -11,37 +9,60 @@ import SummarySection from '@/components/resume-builder/SummarySection';
 import ExperienceSection from '@/components/resume-builder/ExperienceSection';
 import EducationSection from '@/components/resume-builder/EducationSection';
 import SkillsSection from '@/components/resume-builder/SkillsSection';
-import ShareModal from '@/components/resume-builder/ShareModal';
 import ATSModal from '@/components/resume-builder/ATSModal';
+import ATSScoreWidget from '@/components/resume-builder/ATSScoreWidget';
+import ATSScoreDetailModal from '@/components/resume-builder/ATSScoreDetailModal';
 import CoverLetterModal from '@/components/resume-builder/CoverLetterModal';
 import VersionHistoryModal from '@/components/resume-builder/VersionHistoryModal';
 import CareerToolsModal from '@/components/resume-builder/CareerToolsModal';
 import TemplatePickerModal from '@/components/resume-builder/TemplatePickerModal';
+import PdfExportButton from '@/components/resume-builder/PdfExportButton';
 import { getTemplateById } from '@/components/resume-builder/templates';
 import { useGetResumeQuery, useUpdateResumeMutation } from '@/features/resume/resumeApi';
-import { downloadPDF } from '@/services/pdfService';
+import { useAnalyzeGeneralATSMutation } from '@/features/ai/aiApi';
 
-const A4_WIDTH = 794;
-const A4_HEIGHT = 1123;
-const PREVIEW_WIDTH = 420;
-const PREVIEW_SCALE = PREVIEW_WIDTH / A4_WIDTH;
-const PREVIEW_HEIGHT = A4_HEIGHT * PREVIEW_SCALE;
+function useDebouncedCallback(callback, delay) {
+  const timerRef = useRef(null);
+  return useCallback(
+    (...args) => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => callback(...args), delay);
+    },
+    [callback, delay]
+  );
+}
+
+function ToolbarButton({ icon: Icon, label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1.5 text-slate hover:text-ink hover:bg-paper-dim px-2.5 py-2 rounded-lg text-xs font-medium transition whitespace-nowrap"
+    >
+      <Icon size={15} />
+      {label}
+    </button>
+  );
+}
 
 export default function ResumeBuilderPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading, refetch } = useGetResumeQuery(id);
   const [updateResume, { isLoading: isSaving }] = useUpdateResumeMutation();
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
- const [lastSaved, setLastSaved] = useState(null);
-  const [shareOpen, setShareOpen] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+
   const [atsOpen, setAtsOpen] = useState(false);
   const [coverLetterOpen, setCoverLetterOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [careerToolsOpen, setCareerToolsOpen] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
+  const [atsScoreResult, setAtsScoreResult] = useState(null);
+  const [atsScoreDetailOpen, setAtsScoreDetailOpen] = useState(false);
+  const [analyzeGeneralATS, { isLoading: isRechecking }] = useAnalyzeGeneralATSMutation();
+
   const initializedRef = useRef(false);
+  const exportRef = useRef(null);
 
   const { register, control, handleSubmit, reset, watch, setValue, getValues } = useForm({
     defaultValues: {
@@ -55,9 +76,6 @@ export default function ResumeBuilderPage() {
     },
   });
 
-  const watchedValues = useWatch({ control });
-
-  // Reset the form ONLY the first time data loads for this resume id
   useEffect(() => {
     initializedRef.current = false;
   }, [id]);
@@ -79,65 +97,44 @@ export default function ResumeBuilderPage() {
   }, [data, reset]);
 
   const saveResume = useCallback(
-    async (values, saveVersion = true) => { // Always saveVersion for manual save
+    async (values, saveVersion = false) => {
       await updateResume({ id, saveVersion, ...values }).unwrap();
       setLastSaved(new Date());
     },
     [id, updateResume]
   );
 
-  const handleDownloadPDF = useCallback(async () => {
-  try {
-    setIsGeneratingPDF(true);
+  const debouncedSave = useDebouncedCallback((values) => saveResume(values, false), 1500);
+  const watchedValues = useWatch({ control });
 
-    const activeTemplate = getTemplateById(
-      watchedValues.template || "classic"
-    );
-
-    const TemplateComponent = activeTemplate.component;
-
-    const resumeHTML = renderToString(
-      <div
-        style={{
-          width: "210mm",
-          minHeight: "297mm",
-          backgroundColor: "white",
-        }}
-      >
-        <TemplateComponent data={watchedValues} />
-      </div>
-    );
-
-    const blob = await downloadPDF(resumeHTML);
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${watchedValues.title || "Resume"}.pdf`;
-
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error("PDF generation failed:", err);
-    alert("Failed to generate PDF. Please try again.");
-  } finally {
-    setIsGeneratingPDF(false);
-  }
-}, [watchedValues]);
+  useEffect(() => {
+    if (initializedRef.current) {
+      debouncedSave(getValues());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedValues]);
 
   const onManualSave = handleSubmit((values) => saveResume(values, true));
-
-  const handleTogglePublic = async (isPublic) => {
-    await updateResume({ id, isPublic }).unwrap();
-  };
 
   const handleSelectTemplate = (templateId) => {
     setValue('template', templateId, { shouldDirty: true });
     setTemplatePickerOpen(false);
+  };
+
+  const getExportHtml = () => {
+    if (!exportRef.current) return '';
+    return exportRef.current.outerHTML;
+  };
+
+  const handleRecheckScore = async () => {
+    const resumeText = [
+      previewDataRef.current.professionalSummary,
+      ...(previewDataRef.current.experience || []).map((e) => `${e.position} at ${e.company}. ${e.description || ''}`),
+      ...(previewDataRef.current.education || []).map((e) => `${e.degree} at ${e.institution}`),
+      previewDataRef.current.skills?.length ? 'Skills: ' + previewDataRef.current.skills.map((s) => s.name).join(', ') : '',
+    ].join('\n');
+    const res = await analyzeGeneralATS({ resumeText, resumeId: id }).unwrap();
+    setAtsScoreResult(res.data.analysis);
   };
 
   if (isLoading) {
@@ -149,77 +146,44 @@ export default function ResumeBuilderPage() {
   }
 
   const previewData = watchedValues;
-  const currentResume = data?.data?.resume;
+  const previewDataRef = { current: previewData };
   const activeTemplate = getTemplateById(previewData.template || 'classic');
   const TemplateComponent = activeTemplate.component;
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/dashboard')} className="text-slate hover:text-ink transition">
-            <ArrowLeft size={20} />
-          </button>
-          <input
-            {...register('title')}
-            className="font-display text-xl font-semibold text-ink bg-transparent outline-none border-b border-transparent focus:border-amber transition"
-          />
+      {/* Header: back + title */}
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => navigate('/dashboard')} className="text-slate hover:text-ink transition shrink-0">
+          <ArrowLeft size={20} />
+        </button>
+        <input
+          {...register('title')}
+          className="font-display text-xl font-semibold text-ink bg-transparent outline-none border-b border-transparent focus:border-amber transition min-w-0 flex-1"
+        />
+        <span className="text-xs font-mono text-slate flex items-center gap-1.5 shrink-0">
+          {isSaving ? 'Saving...' : lastSaved ? (<><Check size={13} className="text-emerald" /> Saved</>) : 'Auto-save on'}
+        </span>
+      </div>
+
+      {/* Toolbar: tools left, primary actions right */}
+      <div className="flex items-center justify-between gap-3 mb-6 pb-3 border-b border-slate/10 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap">
+          <ToolbarButton icon={LayoutTemplate} label={activeTemplate.name} onClick={() => setTemplatePickerOpen(true)} />
+          <ToolbarButton icon={History} label="History" onClick={() => setHistoryOpen(true)} />
+          <ToolbarButton icon={Target} label="ATS Match" onClick={() => setAtsOpen(true)} />
+          <ToolbarButton icon={Mail} label="Cover Letter" onClick={() => setCoverLetterOpen(true)} />
+          <ToolbarButton icon={Briefcase} label="Career Tools" onClick={() => setCareerToolsOpen(true)} />
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-mono text-slate flex items-center gap-1.5">
-            {isSaving ? 'Saving...' : lastSaved ? (<><Check size={13} className="text-emerald" /> Last Saved</>) : 'Not Saved Yet'}
-          </span>
-          <button
-            onClick={() => setTemplatePickerOpen(true)}
-            className="flex items-center gap-1.5 border border-slate/20 text-ink px-3 py-2 rounded-xl text-sm font-medium hover:border-slate/40 transition"
-          >
-            <LayoutTemplate size={15} /> {activeTemplate.name}
-          </button>
-          <button
-            onClick={() => setHistoryOpen(true)}
-            className="flex items-center gap-1.5 border border-slate/20 text-ink px-3 py-2 rounded-xl text-sm font-medium hover:border-slate/40 transition"
-          >
-            <History size={15} /> History
-          </button>
-          <button
-            onClick={() => setAtsOpen(true)}
-            className="flex items-center gap-1.5 border border-slate/20 text-ink px-3 py-2 rounded-xl text-sm font-medium hover:border-slate/40 transition"
-          >
-            <Target size={15} /> ATS Match
-          </button>
-          <button
-            onClick={() => setCoverLetterOpen(true)}
-            className="flex items-center gap-1.5 border border-slate/20 text-ink px-3 py-2 rounded-xl text-sm font-medium hover:border-slate/40 transition"
-          >
-            <Mail size={15} /> Cover Letter
-          </button>
-          <button
-            onClick={() => setCareerToolsOpen(true)}
-            className="flex items-center gap-1.5 border border-slate/20 text-ink px-3 py-2 rounded-xl text-sm font-medium hover:border-slate/40 transition"
-          >
-            <Briefcase size={15} /> Career Tools
-          </button>
-          <button
-            onClick={() => setShareOpen(true)}
-            className="flex items-center gap-1.5 border border-slate/20 text-ink px-3 py-2 rounded-xl text-sm font-medium hover:border-slate/40 transition"
-          >
-            <Share2 size={15} /> Share
-          </button>
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={onManualSave}
             className="flex items-center gap-1.5 bg-ink text-paper px-4 py-2 rounded-xl text-sm font-medium hover:bg-ink-light transition"
           >
             <Save size={15} /> Save
           </button>
-          <button
-            onClick={handleDownloadPDF}
-            disabled={isGeneratingPDF}
-            className="flex items-center gap-1.5 border border-slate/20 text-ink px-4 py-2 rounded-xl text-sm font-medium hover:border-slate/40 transition disabled:opacity-50"
-          >
-            <Download size={15} />
-            {isGeneratingPDF ? 'Generating...' : 'Export PDF'}
-          </button>
+          <PdfExportButton getHtml={getExportHtml} fileName={`${getValues('title') || 'resume'}.pdf`} />
         </div>
       </div>
 
@@ -232,22 +196,33 @@ export default function ResumeBuilderPage() {
           <SkillsSection control={control} watch={watch} setValue={setValue} />
         </div>
 
-        <div className="hidden lg:block sticky top-24 self-start">
-          <p className="text-xs font-mono text-slate mb-2 uppercase tracking-wide">Live Preview — {activeTemplate.name}</p>
-          <div
-            className="rounded-xl shadow-lg border border-slate/10 overflow-hidden bg-white mx-auto"
-            style={{ width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT }}
-          >
-            <div style={{ width: A4_WIDTH, height: A4_HEIGHT, transform: `scale(${PREVIEW_SCALE})`, transformOrigin: 'top left' }}>
-              <TemplateComponent data={previewData} />
+        <div className="hidden lg:block sticky top-8 self-start space-y-4">
+          <ATSScoreWidget
+            resumeData={previewData}
+            resumeId={id}
+            result={atsScoreResult}
+            onResult={setAtsScoreResult}
+            onOpenDetails={() => setAtsScoreDetailOpen(true)}
+          />
+
+          <div>
+            <p className="text-xs font-mono text-slate mb-2 uppercase tracking-wide">Live Preview — {activeTemplate.name}</p>
+            <div className="rounded-xl shadow-lg border border-slate/10 overflow-hidden bg-white mx-auto" style={{ width: 420, height: 594 }}>
+              <div style={{ width: 794, height: 1123, transform: 'scale(0.529)', transformOrigin: 'top left' }}>
+                <TemplateComponent data={previewData} />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {shareOpen && (
-        <ShareModal resume={currentResume} onClose={() => setShareOpen(false)} onTogglePublic={handleTogglePublic} isUpdating={isSaving} />
-      )}
+      {/* Hidden, unscaled copy used only to capture clean HTML for PDF export */}
+      <div style={{ position: 'fixed', top: -99999, left: -99999, width: 794 }}>
+        <div ref={exportRef}>
+          <TemplateComponent data={previewData} />
+        </div>
+      </div>
+
       {atsOpen && <ATSModal resumeData={previewData} onClose={() => setAtsOpen(false)} />}
       {coverLetterOpen && (
         <CoverLetterModal resumeSummary={previewData.professionalSummary} onClose={() => setCoverLetterOpen(false)} />
@@ -268,6 +243,14 @@ export default function ResumeBuilderPage() {
           onSelect={handleSelectTemplate}
           onClose={() => setTemplatePickerOpen(false)}
           previewData={previewData}
+        />
+      )}
+      {atsScoreDetailOpen && (
+        <ATSScoreDetailModal
+          result={atsScoreResult}
+          onClose={() => setAtsScoreDetailOpen(false)}
+          onRecheck={handleRecheckScore}
+          isLoading={isRechecking}
         />
       )}
     </DashboardLayout>

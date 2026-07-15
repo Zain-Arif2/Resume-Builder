@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import ThemeToggle from '@/components/common/ThemeToggle';
 
 function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -31,6 +32,7 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          <ThemeToggle />
           <Link to="/login" className="text-sm font-medium text-slate hover:text-ink transition">
             Log in
           </Link>

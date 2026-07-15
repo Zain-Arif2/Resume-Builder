@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { LayoutGrid, User, LogOut, Users, BarChart3, ScrollText, CreditCard, Menu, X, Sparkles } from 'lucide-react';
 import { selectCurrentUser, forceLogout } from '@/features/auth/authSlice';
 import { useLogoutMutation } from '@/features/auth/authApi';
+import ThemeToggle from '@/components/common/ThemeToggle';
 
 const mainNav = [
   { to: '/dashboard', label: 'Resumes', icon: LayoutGrid },
@@ -90,8 +91,11 @@ function SidebarContent({ onNavigate }) {
         )}
       </nav>
 
-      <div className="space-y-3 pt-4 border-t border-slate/10">
-        <CreditIndicator />
+   <div className="space-y-3 pt-4 border-t border-slate/10">
+  <div className="flex items-center gap-2">
+    <div className="flex-1"><CreditIndicator /></div>
+    <ThemeToggle />
+  </div>
 
         <div className="flex items-center justify-between px-1">
           <div className="min-w-0">

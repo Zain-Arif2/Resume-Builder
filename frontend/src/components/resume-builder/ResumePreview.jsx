@@ -1,69 +1,123 @@
-import { useState } from "react";
-import { getTemplateById } from "./templates";
+﻿import { Mail, Phone, MapPin, Linkedin, Github, Globe } from 'lucide-react';
+import { formatUrl } from '@/utils/formatUrl';
 
-export default function ResumePreview({ data, template = "classic" }) {
-  const [zoom, setZoom] = useState(85); // Default visual zoom level
-  const TemplateComponent = getTemplateById(template).component;
+export default function ResumePreview({ data }) {
+  const { personalInfo = {}, professionalSummary, experience = [], education = [], skills = [] } = data || {};
+
+  const formatDate = (d) => {
+    if (!d) return '';
+    try {
+      return new Date(d).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    } catch {
+      return '';
+    }
+  };
+
+  const contactLine1 = [
+    personalInfo.email && { icon: Mail, label: personalInfo.email, href: `mailto:${personalInfo.email}` },
+    personalInfo.phone && { icon: Phone, label: personalInfo.phone, href: `tel:${personalInfo.phone}` },
+    (personalInfo.city || personalInfo.country) && {
+      icon: MapPin,
+      label: [personalInfo.city, personalInfo.country].filter(Boolean).join(', '),
+    },
+  ].filter(Boolean);
+
+  const contactLine2 = [
+    personalInfo.linkedin && { icon: Linkedin, label: 'LinkedIn', href: formatUrl(personalInfo.linkedin) },
+    personalInfo.github && { icon: Github, label: 'GitHub', href: formatUrl(personalInfo.github) },
+    personalInfo.website && { icon: Globe, label: 'Website', href: formatUrl(personalInfo.website) },
+  ].filter(Boolean);
 
   return (
-    <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 h-[calc(100vh-180px)] flex flex-col overflow-hidden font-sans">
-      {/* Dynamic Interactive Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 mb-4 border-b border-zinc-200">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-zinc-300" />
-          <div className="h-4 w-[1px] bg-zinc-200 mx-1" />
-          <p className="text-sm font-medium text-zinc-600">ATS Document Canvas</p>
-        </div>
+    <div className="bg-white text-gray-900 rounded-xl shadow-lg p-8 aspect-[8.5/11] overflow-y-auto text-[13px] leading-snug">
+      <div className="border-b border-gray-300 pb-4 mb-4 text-center">
+        <h1 className="text-2xl font-bold tracking-tight">{personalInfo.fullName || 'Your Name'}</h1>
 
-        {/* Zoom Engine & PDF Actions */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center bg-zinc-100 border border-zinc-200 rounded-lg p-0.5">
-            <button 
-              onClick={() => setZoom(Math.max(50, zoom - 10))}
-              className="px-2 py-1 text-xs font-semibold text-zinc-600 hover:bg-white rounded transition-all shadow-none hover:shadow-sm select-none"
-            >
-              -
-            </button>
-            <span className="text-xs font-medium text-zinc-500 min-w-[45px] text-center select-none">
-              {zoom}%
-            </span>
-            <button 
-              onClick={() => setZoom(Math.min(120, zoom + 10))}
-              className="px-2 py-1 text-xs font-semibold text-zinc-600 hover:bg-white rounded transition-all shadow-none hover:shadow-sm select-none"
-            >
-              +
-            </button>
+        {contactLine1.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2 text-xs text-gray-500">
+            {contactLine1.map((item, i) =>
+              item.href ? (
+                <a key={i} href={item.href} className="flex items-center gap-1 hover:text-gray-800">
+                  <item.icon size={11} /> {item.label}
+                </a>
+              ) : (
+                <span key={i} className="flex items-center gap-1">
+                  <item.icon size={11} /> {item.label}
+                </span>
+              )
+            )}
           </div>
+        )}
 
-        </div>
+        {contactLine2.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-1.5 text-xs text-gray-500">
+            {contactLine2.map((item, i) => (
+              <a key={i} href={item.href} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-gray-800">
+                <item.icon size={11} /> {item.label}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Blueprint Canvas Viewport */}
-      <div 
-        className="flex-1 overflow-auto bg-zinc-100/60 rounded-xl flex justify-center items-start p-6"
-        style={{
-          backgroundImage: "radial-gradient(#e4e4e7 1px, transparent 1px)",
-          backgroundSize: "16px 16px"
-        }}
-      >
-        <div
-          style={{ transform: `scale(${zoom / 100})` }}
-          className="
-            bg-white 
-            shadow-[0_16px_40px_rgba(0,0,0,0.06),0_2px_8px_rgba(0,0,0,0.04)] 
-            w-[794px] 
-            min-h-[1123px] 
-            origin-top 
-            transition-transform 
-            duration-200 
-            ease-out
-            border 
-            border-zinc-200/50
-          "
-        >
-          <TemplateComponent data={data} />
-        </div>
-      </div>
+      {professionalSummary && (
+        <section className="mb-4">
+          <h2 className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-1.5">Summary</h2>
+          <p className="text-gray-700">{professionalSummary}</p>
+        </section>
+      )}
+
+      {experience.length > 0 && (
+        <section className="mb-4">
+          <h2 className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2">Experience</h2>
+          <div className="space-y-3">
+            {experience.map((exp, i) => (
+              <div key={i}>
+                <div className="flex justify-between items-baseline">
+                  <p className="font-semibold">{exp.position}</p>
+                  <p className="text-gray-500 text-xs">
+                    {formatDate(exp.startDate)} — {exp.isCurrent ? 'Present' : formatDate(exp.endDate)}
+                  </p>
+                </div>
+                <p className="text-gray-600 text-xs mb-1">{exp.company}</p>
+                {exp.description && (
+                  <ul className="list-disc list-inside text-gray-700 space-y-0.5">
+                    {exp.description.split('\n').filter(Boolean).map((line, j) => (
+                      <li key={j}>{line}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {education.length > 0 && (
+        <section className="mb-4">
+          <h2 className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2">Education</h2>
+          <div className="space-y-2">
+            {education.map((edu, i) => (
+              <div key={i} className="flex justify-between items-baseline">
+                <div>
+                  <p className="font-semibold">{edu.degree}{edu.fieldOfStudy ? `, ${edu.fieldOfStudy}` : ''}</p>
+                  <p className="text-gray-600 text-xs">{edu.institution}</p>
+                </div>
+                <p className="text-gray-500 text-xs">
+                  {formatDate(edu.startDate)} — {formatDate(edu.endDate)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {skills.length > 0 && (
+        <section>
+          <h2 className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2">Skills</h2>
+          <p className="text-gray-700">{skills.map((s) => s.name).join(' · ')}</p>
+        </section>
+      )}
     </div>
   );
 }
