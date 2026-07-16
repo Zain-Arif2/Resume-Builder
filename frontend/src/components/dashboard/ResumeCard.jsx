@@ -18,13 +18,12 @@ export default function ResumeCard({ resume, onDelete, onDuplicate }) {
         <p className="text-slate text-xs font-mono">Edited {updatedAt}</p>
       </Link>
 
-      <div className="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition">
-        <button
-          onClick={() => onDuplicate(resume._id)}
-          className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium text-slate hover:text-ink border border-slate/20 rounded-lg py-2 transition"
-        >
-          <Copy size={13} /> Duplicate
-        </button>
+      <div className="flex items-center gap-2 mt-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">        <button
+        onClick={() => onDuplicate(resume._id)}
+        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium text-slate hover:text-ink border border-slate/20 rounded-lg py-2 transition"
+      >
+        <Copy size={13} /> Duplicate
+      </button>
         <button
           onClick={() => onDelete(resume._id)}
           className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium text-danger hover:bg-danger-dim border border-danger/20 rounded-lg py-2 transition"

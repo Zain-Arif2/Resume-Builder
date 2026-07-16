@@ -27,7 +27,7 @@ export default function SkillsSection({ control, watch, setValue }) {
 
   return (
     <SectionCard title="Skills" subtitle="Technical and soft skills relevant to your target role">
-      <div className="flex gap-2 mb-4">
+     <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <input
           value={role}
           onChange={(e) => setRole(e.target.value)}
@@ -37,7 +37,10 @@ export default function SkillsSection({ control, watch, setValue }) {
         <AIButton onClick={handleAISuggest} isLoading={isLoading} label="Suggest skills" />
       </div>
 
-      <form onSubmit={addSkill} className="flex gap-2 mb-4">
+     <form
+  onSubmit={addSkill}
+  className="flex flex-col sm:flex-row gap-2 mb-4"
+>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}

@@ -79,16 +79,16 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-ink">Your Resumes</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-ink">Your Resumes</h1>
           <p className="text-slate text-sm mt-1">{resumes.length} resume{resumes.length !== 1 ? 's' : ''}</p>
         </div>
         {resumes.length > 0 && (
           <button
             onClick={handleCreate}
             disabled={isCreating}
-            className="flex items-center gap-2 bg-ink text-paper px-4 py-2.5 rounded-xl font-medium hover:bg-ink-light disabled:opacity-50 transition"
+            className="flex items-center justify-center gap-2 bg-ink text-paper px-4 py-2.5 rounded-xl font-medium hover:bg-ink-light disabled:opacity-50 transition text-sm shrink-0"
           >
             <Plus size={16} /> New Resume
           </button>
@@ -100,7 +100,7 @@ export default function DashboardPage() {
       ) : resumes.length === 0 ? (
         <EmptyState onCreate={handleCreate} isLoading={isCreating} />
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
           {resumes.map((resume) => (
             <ResumeCard
               key={resume._id}

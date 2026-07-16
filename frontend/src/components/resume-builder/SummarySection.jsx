@@ -19,7 +19,7 @@ export default function SummarySection({ register, watch, setValue }) {
 
   return (
     <SectionCard title="Professional Summary" subtitle="A short pitch at the top of your resume">
-      <div className="flex gap-2 mb-3">
+      <div className="flex flex-col sm:flex-row gap-2 mb-3">
         <input
           value={role}
           onChange={(e) => setRole(e.target.value)}

@@ -76,8 +76,7 @@ export default function ExperienceSection({ control, register, setValue, watch }
               />
             </div>
 
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-slate">Bullet points (one per line)</label>
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1.5">              <label className="text-xs font-medium text-slate">Bullet points (one per line)</label>
               <AIButton onClick={() => handleImprove(index)} isLoading={isLoading} label="Improve" />
             </div>
             <textarea

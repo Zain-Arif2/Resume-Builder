@@ -16,7 +16,7 @@ import CoverLetterModal from '@/components/resume-builder/CoverLetterModal';
 import VersionHistoryModal from '@/components/resume-builder/VersionHistoryModal';
 import CareerToolsModal from '@/components/resume-builder/CareerToolsModal';
 import TemplatePickerModal from '@/components/resume-builder/TemplatePickerModal';
-import PdfExportButton from '@/components/resume-builder/PdfExportButton';
+import ExportButton from '@/components/resume-builder/ExportButton';
 import { getTemplateById } from '@/components/resume-builder/templates';
 import { useGetResumeQuery, useUpdateResumeMutation } from '@/features/resume/resumeApi';
 import { useAnalyzeGeneralATSMutation } from '@/features/ai/aiApi';
@@ -153,7 +153,7 @@ export default function ResumeBuilderPage() {
   return (
     <DashboardLayout>
       {/* Header: back + title */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <button onClick={() => navigate('/dashboard')} className="text-slate hover:text-ink transition shrink-0">
           <ArrowLeft size={20} />
         </button>
@@ -183,8 +183,7 @@ export default function ResumeBuilderPage() {
           >
             <Save size={15} /> Save
           </button>
-          <PdfExportButton getHtml={getExportHtml} fileName={`${getValues('title') || 'resume'}.pdf`} />
-        </div>
+<ExportButton getHtml={getExportHtml} baseFileName={getValues('title') || 'resume'} />        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -217,8 +216,16 @@ export default function ResumeBuilderPage() {
       </div>
 
       {/* Hidden, unscaled copy used only to capture clean HTML for PDF export */}
-      <div style={{ position: 'fixed', top: -99999, left: -99999, width: 794 }}>
-        <div ref={exportRef}>
+<div
+  style={{
+    position: "absolute",
+    left: "-99999px",
+    top: 0,
+    width: "794px",
+    visibility: "hidden",
+    pointerEvents: "none",
+  }}
+>        <div ref={exportRef}>
           <TemplateComponent data={previewData} />
         </div>
       </div>
