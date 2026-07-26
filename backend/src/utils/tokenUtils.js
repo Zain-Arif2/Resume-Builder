@@ -20,3 +20,10 @@ export function verifyAccessToken(token) {
 export function verifyRefreshToken(token) {
   return jwt.verify(token, env.jwt.refreshSecret);
 }
+
+// Decodes without verifying signature — used only to read the `exp` claim
+// right after we've generated/verified a token ourselves, so we know when
+// to expire the stored (hashed) copy in the DB.
+export function decodeToken(token) {
+  return jwt.decode(token);
+}

@@ -36,15 +36,26 @@ export const userRepository = {
     return User.findByIdAndUpdate(id, update, { new: true, runValidators: true });
   },
 
-  async addRefreshToken(id, token) {
-    return User.findByIdAndUpdate(id, { $push: { refreshTokens: { token } } }, { new: true });
+  async addRefreshToken(id, hashedToken, expiresAt) {
+    // Lazy cleanup: drop already-expired tokens for this user before pushing the new one,
+    // so the array doesn't grow forever with stale entries.
+    await User.findByIdAndUpdate(id, { $pull: { refreshTokens: { expiresAt: { $lt: new Date() } } } });
+    return User.findByIdAndUpdate(
+      id,
+      { $push: { refreshTokens: { token: hashedToken, expiresAt } } },
+      { new: true }
+    );
   },
 
-  async removeRefreshToken(id, token) {
-    return User.findByIdAndUpdate(id, { $pull: { refreshTokens: { token } } }, { new: true });
+  async removeRefreshToken(id, hashedToken) {
+    return User.findByIdAndUpdate(id, { $pull: { refreshTokens: { token: hashedToken } } }, { new: true });
   },
 
-  async findByRefreshToken(token) {
-    return User.findOne({ 'refreshTokens.token': token }).select('+refreshTokens');
+  async revokeAllRefreshTokens(id) {
+    return User.findByIdAndUpdate(id, { $set: { refreshTokens: [] } }, { new: true });
+  },
+
+  async findByHashedRefreshToken(hashedToken) {
+    return User.findOne({ 'refreshTokens.token': hashedToken }).select('+refreshTokens');
   },
 };

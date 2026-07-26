@@ -61,7 +61,8 @@ const userSchema = new mongoose.Schema(
     passwordResetExpires: { type: Date, select: false },
     refreshTokens: [
       {
-        token: { type: String, select: false },
+        token: { type: String, select: false }, // SHA-256 hash of the actual refresh token, never the raw JWT
+        expiresAt: { type: Date, select: false },
         createdAt: { type: Date, default: Date.now },
       },
     ],
