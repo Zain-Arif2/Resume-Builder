@@ -1,6 +1,7 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Globe } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { formatUrl } from "../../../utils/formatUrl";
 
 function SectionTitle({ children }) {
   return (
@@ -64,24 +65,39 @@ export default function ModernATS({ data }) {
             )}
 
             {personal.linkedin && (
-              <div className="flex items-center gap-2">
+              <a
+                href={formatUrl(personal.linkedin)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 hover:underline"
+              >
                 <FaLinkedin size={15} />
                 {personal.linkedin}
-              </div>
+              </a>
             )}
 
             {personal.github && (
-              <div className="flex items-center gap-2">
+              <a
+                href={formatUrl(personal.github)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 hover:underline"
+              >
                 <FaGithub size={15} />
                 {personal.github}
-              </div>
+              </a>
             )}
 
             {personal.website && (
-              <div className="flex items-center gap-2">
+              <a
+                href={formatUrl(personal.website)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 hover:underline"
+              >
                 <Globe size={15} />
                 {personal.website}
-              </div>
+              </a>
             )}
           </div>
         </div>
@@ -339,7 +355,7 @@ export default function ModernATS({ data }) {
                     <div className="flex gap-3 text-sm">
                       {project.liveUrl && (
                         <a
-                          href={project.liveUrl}
+                          href={formatUrl(project.liveUrl)}
                           target="_blank"
                           rel="noreferrer"
                           className="text-blue-600 hover:underline"
@@ -349,7 +365,7 @@ export default function ModernATS({ data }) {
                       )}
                       {project.github && (
                         <a
-                          href={project.github}
+                          href={formatUrl(project.github)}
                           target="_blank"
                           rel="noreferrer"
                           className="text-gray-700 hover:underline"
