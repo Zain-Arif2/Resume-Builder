@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: resume-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5000:5000"
+    networks:
+      - resume-network
+
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: resume-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - resume-network
+
+
+networks:
+  resume-network:
+    driver: bridge
